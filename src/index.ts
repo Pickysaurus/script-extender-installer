@@ -10,7 +10,7 @@ let supportData ={
     name: "Skyrim Script Extender (SKSE)",
     scriptExtExe: "skse_loader.exe",
     nexusPage: "https://www.nexusmods.com/skyrim/mods/100216",
-    nexusGameId: 110,
+    nexusFileId: 1000308832,
     nexusModId: 100216,
     website: "http://skse.silverlock.org/",
     regex: /(beta\/skse_[0-9]+_[0-9]+_[0-9]+.7z)/i
@@ -19,7 +19,7 @@ let supportData ={
     name: "Skyrim Script Extender 64 (SKSE64)",
     scriptExtExe: "skse64_loader.exe",
     nexusPage: "https://www.nexusmods.com/skyrimspecialedition/mods/30379",
-    nexusGameId: 1704,
+    nexusFileId: 113950,
     nexusModId: 30379,
     website: "http://skse.silverlock.org/",
     regex: /(beta\/skse64_[0-9]+_[0-9]+_[0-9]+.7z)/i
@@ -27,8 +27,8 @@ let supportData ={
   "skyrimvr" : {
     name: "Skyrim Script Extender VR (SKSEVR)",
     scriptExtExe: "sksevr_loader.exe",
-    nexusPage: "https://www.nexusmods.com/skyrim/mods/100238",
-    nexusGameId: 1704,
+    nexusPage: "https://www.nexusmods.com/skyrimspecialedition/mods/30457",
+    nexusFileId: 113811,
     nexusModId: 100238,
     website: "http://skse.silverlock.org/",
     regex: /(beta\/sksevr_[0-9]+_[0-9]+_[0-9]+.7z)/i
@@ -37,7 +37,7 @@ let supportData ={
     name: "Fallout 4 Script Extender (F4SE)",
     scriptExtExe: "f4se_loader.exe",
     nexusPage: "https://www.nexusmods.com/fallout4/mods/42147",
-    nexusGameId: 1151,
+    nexusFileId: 172157,
     nexusModId: 42147,
     website: "http://f4se.silverlock.org/",
     regex: /(beta\/f4se_[0-9]+_[0-9]+_[0-9]+.7z)/i
@@ -45,9 +45,9 @@ let supportData ={
   "fallout4vr" : {
     name: "Fallout 4 Script Extender VR (F4SE)",
     scriptExtExe: "f4vser_loader.exe",
-    nexusPage: "https://www.nexusmods.com/fallout4/mods/42147",
-    nexusGameId: 1151,
-    nexusModId: 42147,
+    nexusPage: "https://www.nexusmods.com/fallout4/mods/42159",
+    nexusFileId: 171114,
+    nexusModId: 42159,
     website: "http://f4se.silverlock.org/",
     regex: /(beta\/f4sevr_[0-9]+_[0-9]+_[0-9]+.7z)/i
   },
@@ -55,7 +55,7 @@ let supportData ={
     name: "New Vegas Script Extender (NVSE)",
     scriptExtExe: "nvse_loader.exe",
     nexusPage: "https://www.nexusmods.com/newvegas/mods/67883",
-    nexusGameId: 1151,
+    nexusFileId: 1000057601,
     nexusModId: 67883,
     website: "http://nvse.silverlock.org/",
     regex: /(download\/nvse_[0-9]+_[0-9]+_[a-zA-Z0-9]+.7z)/i
@@ -64,7 +64,7 @@ let supportData ={
     name: "Fallout Script Extender (FOSE)",
     scriptExtExe: "fose_loader.exe",
     nexusPage: "https://www.nexusmods.com/fallout3/mods/8606",
-    nexusGameId: 1151,
+    nexusFileId: 1000018411,
     nexusModId: 8606,
     website: "http://fose.silverlock.org/",
     regex: /(download\/obse_[0-9]+.zip)/i
@@ -73,7 +73,7 @@ let supportData ={
     name: "Oblivion Script Extender (OBSE)",
     scriptExtExe: "obse_loader.exe",
     nexusPage: "https://www.nexusmods.com/oblivion/mods/37952",
-    nexusGameId: 1151,
+    nexusFileId: 1000005268,
     nexusModId: 37952,
     website: "http://obse.silverlock.org/",
     regex: /(download\/fose_[0-9]+_[0-9]+_[a-zA-Z0-9]+.7z)/i
@@ -83,7 +83,7 @@ let supportData ={
     name: "Morrowind Script Extender (MWSE)",
     scriptExtExe: "MWSE.dll",
     nexusPage: "https://www.nexusmods.com/morrowind/mods/45468",
-    nexusGameId: 1151,
+    nexusFileId: 1000009574,
     nexusModId: 45468,
     website: "https://github.com/MWSE/MWSE/releases",
     regex: /(download\/fose_[0-9]+_[0-9]+_[a-zA-Z0-9]+.7z)/i,
@@ -92,11 +92,23 @@ let supportData ={
 }
 
 
-const getScriptExtenderVersion = (path : string): string => {
-  // The exe versions appear to have a leading zero. So we need to cut it off. 
-  let exeVersion = getVersion(path);
-  exeVersion = exeVersion.startsWith("0") ? exeVersion.substr(exeVersion.indexOf('.'), exeVersion.length) : exeVersion;
-  return semver.coerce(exeVersion).version || '-1';
+const getScriptExtenderVersion = (path : string): Promise<string> => {
+  // Check the file we're looking for actually exists.
+  return new Promise((resolve, reject) => {
+    fs.statAsync(path)
+    .then(() => {
+      // The exe versions appear to have a leading zero. So we need to cut it off. 
+      let exeVersion = getVersion(path);
+      exeVersion = exeVersion.startsWith("0") ? exeVersion.substr(exeVersion.indexOf('.'), exeVersion.length) : exeVersion;
+      return resolve(semver.coerce(exeVersion).version);
+    })
+    .catch(() => {
+      // Return a blank string if the file doesn't exist.
+      log('debug', 'Script extender not found:', path);
+      return resolve();
+    });
+
+  }); 
 };
 
 const getGamePath = (gameId: string, api): string => {
@@ -123,8 +135,8 @@ async function onCheckModVersion(api, gameId, mods) {
   const gameSupport = supportData[gameId];
   const gamePath = getGamePath(gameId, api);
 
-  const scriptExtenderVersion : string = fs.statSync(path.join(gamePath, gameSupport.scriptExtExe)).size > 0 ? getScriptExtenderVersion(path.join(gamePath, gameSupport.scriptExtExe)) : '-1';
-  if (scriptExtenderVersion === '-1') return;
+  const scriptExtenderVersion : string = await getScriptExtenderVersion(path.join(gamePath, gameSupport.scriptExtExe));
+  if (!scriptExtenderVersion) return;
 
   const modArray = Object.keys(mods).map(k => mods[k]);
   const scriptExtenders = modArray.filter(mod => mod.attributes.scriptExtender);
@@ -138,7 +150,7 @@ async function onCheckModVersion(api, gameId, mods) {
   });
 }
 
-function onGameModeActivated(api, gameId: string) {
+async function onGameModeActivated(api, gameId: string) {
   // Clear script extender notifications from other games.
   api.dismissNotification('scriptextender');
 
@@ -154,24 +166,18 @@ function onGameModeActivated(api, gameId: string) {
   const gamePath = getGamePath(activegame.id, api);
 
   // Grab our current script extender version. 
-  const scriptExtenderVersion : string = fs.statSync(path.join(gamePath, gameSupport.scriptExtExe)).size > 0 ? getScriptExtenderVersion(path.join(gamePath, gameSupport.scriptExtExe)) : '-1';
+  const scriptExtenderVersion : string = await getScriptExtenderVersion(path.join(gamePath, gameSupport.scriptExtExe));
 
   // If the script extender isn't installed, return. Perhaps we should recommend installing it?
-  if (scriptExtenderVersion === '-1') {
-    notifyNotInstalled(gameSupport, api);
-    return false
-  };
+  if (!scriptExtenderVersion) return notifyNotInstalled(gameSupport, api);
 
-  // If we've already stored the latest version this session. 
-  if (gameSupport.latestVersion) {
-    return semver.lte(gameSupport.latestVersion, scriptExtenderVersion) ? null : notifyNewVersion(gameSupport.latestVersion, scriptExtenderVersion, supportData, api);
-  };
-
-  // Grab the script extender page to parse.
-  checkForUpdate(api, gameSupport, scriptExtenderVersion);
+  // If we've already stored the latest version this session and it's out of date. 
+  if (gameSupport.latestVersion && semver.gt(gameSupport.latestVersion, scriptExtenderVersion)) return notifyNewVersion(gameSupport.latestVersion, scriptExtenderVersion, supportData, api);
+  // If the latest version hasn't been checked yet retrieve it.
+  else if (!gameSupport.latestVersion) return checkForUpdate(api, gameSupport, scriptExtenderVersion);
 }
 
-function checkForUpdate(api, gameSupport, scriptExtenderVersion) {
+function checkForUpdate(api, gameSupport, scriptExtenderVersion: string) {
   if (gameSupport.scriptExtExe === "MWSE.dll") return gameSupport.latestVersion; //Exit for Morrowind.
   return new Promise((resolve, reject) => {
     https.get(gameSupport.website, {protocol : 'https:'}, (res : IncomingMessage) => {
@@ -315,7 +321,7 @@ function testSupported(files : string[], gameId: string) : Promise<types.ISuppor
   });
 }
 
-function installScriptExtender(context, files: string[], destinationPath: string, gameId: string) {
+async function installScriptExtender(context, files: string[], destinationPath: string, gameId: string) {
   // Install the script extender.
   const gameData = supportData[gameId];
   const scriptExtender = files.find(file => path.basename(file).toLowerCase() === gameData.scriptExtExe.toLowerCase());
@@ -323,10 +329,11 @@ function installScriptExtender(context, files: string[], destinationPath: string
   const rootPath = path.dirname(scriptExtender);
 
   const modId = path.basename(destinationPath, '.installing');
-  const scriptExtenderVersion = getScriptExtenderVersion(path.join(destinationPath, scriptExtender));
+  const scriptExtenderVersion = await getScriptExtenderVersion(path.join(destinationPath, scriptExtender));
   const modAtrributes = {
     allowRating: false,
     downloadGame: gameId,
+    fileId: gameData.nexusFileId,
     modId: gameData.nexusModId.toString(),
     logicalFileName: gameData.name,
     source: "nexus",
