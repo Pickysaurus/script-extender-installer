@@ -13,6 +13,7 @@ let supportData ={
     nexusFileId: 1000308832,
     nexusModId: 100216,
     website: "http://skse.silverlock.org/",
+    pictureURL: "https://staticdelivery.nexusmods.com/mods/110/images/thumbnails/100216/100216-1573836396-219554299.jpeg",
     regex: /(beta\/skse_[0-9]+_[0-9]+_[0-9]+.7z)/i
   },
   "skyrimse" : {
@@ -22,6 +23,7 @@ let supportData ={
     nexusFileId: 113950,
     nexusModId: 30379,
     website: "http://skse.silverlock.org/",
+    pictureURL: "https://staticdelivery.nexusmods.com/mods/1704/images/thumbnails/30379/30379-1573836905-2108386036.jpeg",
     regex: /(beta\/skse64_[0-9]+_[0-9]+_[0-9]+.7z)/i
   },
   "skyrimvr" : {
@@ -31,6 +33,7 @@ let supportData ={
     nexusFileId: 113811,
     nexusModId: 100238,
     website: "http://skse.silverlock.org/",
+    pictureURL: "https://staticdelivery.nexusmods.com/mods/1704/images/thumbnails/30379/30379-1573836905-2108386036.jpeg",
     regex: /(beta\/sksevr_[0-9]+_[0-9]+_[0-9]+.7z)/i
   },
   "fallout4" : {
@@ -40,6 +43,7 @@ let supportData ={
     nexusFileId: 172157,
     nexusModId: 42147,
     website: "http://f4se.silverlock.org/",
+    pictureURL: "https://staticdelivery.nexusmods.com/mods/1151/images/thumbnails/42147/42147-1574018373-1181117442.jpeg",
     regex: /(beta\/f4se_[0-9]+_[0-9]+_[0-9]+.7z)/i
   },
   "fallout4vr" : {
@@ -49,6 +53,7 @@ let supportData ={
     nexusFileId: 171114,
     nexusModId: 42159,
     website: "http://f4se.silverlock.org/",
+    pictureURL: "https://staticdelivery.nexusmods.com/mods/1151/images/thumbnails/42147/42147-1574018373-1181117442.jpeg",
     regex: /(beta\/f4sevr_[0-9]+_[0-9]+_[0-9]+.7z)/i
   },
   "falloutnv" : {
@@ -58,6 +63,7 @@ let supportData ={
     nexusFileId: 1000057601,
     nexusModId: 67883,
     website: "http://nvse.silverlock.org/",
+    pictureURL: "https://staticdelivery.nexusmods.com/mods/130/images/thumbnails/67883/67883-1574092217-1384714337.jpeg",
     regex: /(download\/nvse_[0-9]+_[0-9]+_[a-zA-Z0-9]+.7z)/i
   },
   "fallout3" : {
@@ -67,6 +73,7 @@ let supportData ={
     nexusFileId: 1000018411,
     nexusModId: 8606,
     website: "http://fose.silverlock.org/",
+    pictureURL: "",
     regex: /(download\/obse_[0-9]+.zip)/i
   },
   "oblivion" : {
@@ -76,19 +83,20 @@ let supportData ={
     nexusFileId: 1000005268,
     nexusModId: 37952,
     website: "http://obse.silverlock.org/",
+    pictureURL: "https://staticdelivery.nexusmods.com/mods/101/images/thumbnails/37952-1-1369833903.png",
     regex: /(download\/fose_[0-9]+_[0-9]+_[a-zA-Z0-9]+.7z)/i
   },
   //MWSE is only on Nexus Mods or Github, so will have to be handled differently. 
-  "morrowind" : {
-    name: "Morrowind Script Extender (MWSE)",
-    scriptExtExe: "MWSE.dll",
-    nexusPage: "https://www.nexusmods.com/morrowind/mods/45468",
-    nexusFileId: 1000009574,
-    nexusModId: 45468,
-    website: "https://github.com/MWSE/MWSE/releases",
-    regex: /(download\/fose_[0-9]+_[0-9]+_[a-zA-Z0-9]+.7z)/i,
-    latestVersion: '2.0.0'
-  },
+  // "morrowind" : {
+  //   name: "Morrowind Script Extender (MWSE)",
+  //   scriptExtExe: "MWSE.dll",
+  //   nexusPage: "https://www.nexusmods.com/morrowind/mods/45468",
+  //   nexusFileId: 1000009574,
+  //   nexusModId: 45468,
+  //   website: "https://github.com/MWSE/MWSE/releases",
+  //   regex: /(download\/fose_[0-9]+_[0-9]+_[a-zA-Z0-9]+.7z)/i,
+  //   latestVersion: '2.0.0'
+  // },
 }
 
 
@@ -337,8 +345,10 @@ async function installScriptExtender(context, files: string[], destinationPath: 
     modId: gameData.nexusModId.toString(),
     logicalFileName: gameData.name,
     source: "nexus",
+    homepage: gameData.website,
+    pictureURL: gameData.pictureURL,
     version: scriptExtenderVersion,
-    scriptExtender : true
+    scriptExtender: true
   };
   context.api.store.dispatch(actions.setModAttributes(gameId, modId, modAtrributes));
   
