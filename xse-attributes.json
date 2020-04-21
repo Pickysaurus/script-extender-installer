@@ -1,0 +1,298 @@
+{
+    "skyrim" : [
+      {
+          "type" : "attribute",
+          "key" : "allowRating",
+          "value" : false
+      },
+      {
+          "type" : "attribute",
+          "key" : "logicalFileName",
+          "value" : "Skyrim Script Extender (SKSE)"
+      },
+      {
+          "type" : "attribute",
+          "key" : "homepage",
+          "value" : "http://skse.silverlock.org/"
+      },
+      {
+          "type" : "attribute",
+          "key" : "pictureUrl",
+          "value" : "https://staticdelivery.nexusmods.com/mods/110/images/thumbnails/100216/100216-1573836396-219554299.jpeg" 
+      },
+      {
+          "type" : "attribute",
+          "key" : "scriptExtender",
+          "value" : true
+      },
+      {
+          "type" : "attribute",
+          "key" : "downloadGame",
+          "value" : "skyrim"
+      },
+      {
+          "type" : "attribute",
+          "key" : "author",
+          "value" : "SKSE Team"
+      }
+  ],
+  "skyrimse" : [
+        {
+            "type" : "attribute",
+            "key" : "allowRating",
+            "value" : false
+        },
+        {
+            "type" : "attribute",
+            "key" : "logicalFileName",
+            "value" : "Skyrim Script Extender 64 (SKSE64)"
+        },
+        {
+            "type" : "attribute",
+            "key" : "homepage",
+            "value" : "http://skse.silverlock.org/"
+        },
+        {
+            "type" : "attribute",
+            "key" : "pictureUrl",
+            "value" : "https://staticdelivery.nexusmods.com/mods/110/images/thumbnails/100216/100216-1573836396-219554299.jpeg" 
+        },
+        {
+            "type" : "attribute",
+            "key" : "scriptExtender",
+            "value" : true
+        },
+        {
+            "type" : "attribute",
+            "key" : "downloadGame",
+            "value" : "skyrimse"
+        },
+        {
+            "type" : "attribute",
+            "key" : "author",
+            "value" : "SKSE Team"
+        }
+  ],
+  "skyrimvr" : [
+        {
+            "type" : "attribute",
+            "key" : "allowRating",
+            "value" : false
+        },
+        {
+            "type" : "attribute",
+            "key" : "logicalFileName",
+            "value" : "Skyrim Script Extender VR (SKSEVR)"
+        },
+        {
+            "type" : "attribute",
+            "key" : "homepage",
+            "value" : "http://skse.silverlock.org/"
+        },
+        {
+            "type" : "attribute",
+            "key" : "pictureUrl",
+            "value" : "https://staticdelivery.nexusmods.com/mods/110/images/thumbnails/100216/100216-1573836396-219554299.jpeg" 
+        },
+        {
+            "type" : "attribute",
+            "key" : "scriptExtender",
+            "value" : true
+        },
+        {
+            "type" : "attribute",
+            "key" : "downloadGame",
+            "value" : "skyrimvr"
+        },
+        {
+            "type" : "attribute",
+            "key" : "author",
+            "value" : "SKSE Team"
+        }
+  ],
+  "fallout4" : [
+        {
+            "type" : "attribute",
+            "key" : "allowRating",
+            "value" : false
+        },
+        {
+            "type" : "attribute",
+            "key" : "logicalFileName",
+            "value" : "Fallout 4 Script Extender (F4SE)"
+        },
+        {
+            "type" : "attribute",
+            "key" : "homepage",
+            "value" : "http://f4se.silverlock.org/"
+        },
+        {
+            "type" : "attribute",
+            "key" : "pictureUrl",
+            "value" : "https://staticdelivery.nexusmods.com/mods/1151/images/thumbnails/42147/42147-1574018373-1181117442.jpeg" 
+        },
+        {
+            "type" : "attribute",
+            "key" : "scriptExtender",
+            "value" : true
+        },
+        {
+            "type" : "attribute",
+            "key" : "downloadGame",
+            "value" : "fallout4"
+        },
+        {
+            "type" : "attribute",
+            "key" : "author",
+            "value" : "F4SE Team"
+        }
+  ],
+  "fallout4vr": [
+        {
+            "type" : "attribute",
+            "key" : "allowRating",
+            "value" : false
+        },
+        {
+            "type" : "attribute",
+            "key" : "logicalFileName",
+            "value" : "Fallout 4 Script Extender VR (F4SE)"
+        },
+        {
+            "type" : "attribute",
+            "key" : "homepage",
+            "value" : "http://f4se.silverlock.org/"
+        },
+        {
+            "type" : "attribute",
+            "key" : "pictureUrl",
+            "value" : "https://staticdelivery.nexusmods.com/mods/1151/images/thumbnails/42147/42147-1574018373-1181117442.jpeg" 
+        },
+        {
+            "type" : "attribute",
+            "key" : "scriptExtender",
+            "value" : true
+        },
+        {
+            "type" : "attribute",
+            "key" : "downloadGame",
+            "value" : "fallout4vr"
+        },
+        {
+            "type" : "attribute",
+            "key" : "author",
+            "value" : "F4SE Team"
+        }
+  ],
+  "falloutnv": [
+        {
+            "type" : "attribute",
+            "key" : "allowRating",
+            "value" : false
+        },
+        {
+            "type" : "attribute",
+            "key" : "logicalFileName",
+            "value" : "New Vegas Script Extender (NVSE)"
+        },
+        {
+            "type" : "attribute",
+            "key" : "homepage",
+            "value" : "http://nvse.silverlock.org/"
+        },
+        {
+            "type" : "attribute",
+            "key" : "pictureUrl",
+            "value" : "https://staticdelivery.nexusmods.com/mods/130/images/thumbnails/67883/67883-1574092217-1384714337.jpeg" 
+        },
+        {
+            "type" : "attribute",
+            "key" : "scriptExtender",
+            "value" : true
+        },
+        {
+            "type" : "attribute",
+            "key" : "downloadGame",
+            "value" : "falloutnv"
+        },
+        {
+            "type" : "attribute",
+            "key" : "author",
+            "value" : "NVSE Team"
+        }
+  ],
+  "fallout3" : [
+        {
+            "type" : "attribute",
+            "key" : "allowRating",
+            "value" : false
+        },
+        {
+            "type" : "attribute",
+            "key" : "logicalFileName",
+            "value" : "Fallout Script Extender (FOSE)"
+        },
+        {
+            "type" : "attribute",
+            "key" : "homepage",
+            "value" : "http://fose.silverlock.org/"
+        },
+        {
+            "type" : "attribute",
+            "key" : "pictureUrl",
+            "value" : "" 
+        },
+        {
+            "type" : "attribute",
+            "key" : "scriptExtender",
+            "value" : true
+        },
+        {
+            "type" : "attribute",
+            "key" : "downloadGame",
+            "value" : "fallout3"
+        },
+        {
+            "type" : "attribute",
+            "key" : "author",
+            "value" : "FOSE Team"
+        }
+  ],
+  "oblivion" : [
+              {
+            "type" : "attribute",
+            "key" : "allowRating",
+            "value" : false
+        },
+        {
+            "type" : "attribute",
+            "key" : "logicalFileName",
+            "value" : "Oblivion Script Extender (OBSE)"
+        },
+        {
+            "type" : "attribute",
+            "key" : "homepage",
+            "value" : "http://obse.silverlock.org/"
+        },
+        {
+            "type" : "attribute",
+            "key" : "pictureUrl",
+            "value" : "https://staticdelivery.nexusmods.com/mods/101/images/thumbnails/37952-1-1369833903.png" 
+        },
+        {
+            "type" : "attribute",
+            "key" : "scriptExtender",
+            "value" : true
+        },
+        {
+            "type" : "attribute",
+            "key" : "downloadGame",
+            "value" : "oblivion"
+        },
+        {
+            "type" : "attribute",
+            "key" : "author",
+            "value" : "OBSE Team"
+        }
+  ]
+}

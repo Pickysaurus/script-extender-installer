@@ -5,99 +5,82 @@ import { IncomingMessage } from 'http';
 import getVersion from 'exe-version';
 import * as semver from 'semver';
 
+const xseAttributes = require('../xse-attributes.json');
+
 let supportData ={
   "skyrim" : {
     name: "Skyrim Script Extender (SKSE)",
     scriptExtExe: "skse_loader.exe",
-    nexusPage: "https://www.nexusmods.com/skyrim/mods/100216",
-    nexusFileId: 1000308832,
-    nexusModId: 100216,
     website: "http://skse.silverlock.org/",
-    pictureURL: "https://staticdelivery.nexusmods.com/mods/110/images/thumbnails/100216/100216-1573836396-219554299.jpeg",
-    regex: /(beta\/skse_[0-9]+_[0-9]+_[0-9]+.7z)/i
+    regex: /(beta\/skse_[0-9]+_[0-9]+_[0-9]+.7z)/i,
+    attributes: (xseVersion) => {
+      return [{ type: "attribute", key: "version", value: xseVersion}, ...xseAttributes.skyrim];
+    }
   },
   "skyrimse" : {
     name: "Skyrim Script Extender 64 (SKSE64)",
     scriptExtExe: "skse64_loader.exe",
-    nexusPage: "https://www.nexusmods.com/skyrimspecialedition/mods/30379",
-    nexusFileId: 113950,
-    nexusModId: 30379,
     website: "http://skse.silverlock.org/",
-    pictureURL: "https://staticdelivery.nexusmods.com/mods/1704/images/thumbnails/30379/30379-1573836905-2108386036.jpeg",
-    regex: /(beta\/skse64_[0-9]+_[0-9]+_[0-9]+.7z)/i
+    regex: /(beta\/skse64_[0-9]+_[0-9]+_[0-9]+.7z)/i,
+    attributes: (xseVersion) => {
+      return [{ type: "attribute", key: "version", value: xseVersion}, ...xseAttributes.skyrimse];
+    }
   },
   "skyrimvr" : {
     name: "Skyrim Script Extender VR (SKSEVR)",
     scriptExtExe: "sksevr_loader.exe",
-    nexusPage: "https://www.nexusmods.com/skyrimspecialedition/mods/30457",
-    nexusFileId: 113811,
-    nexusModId: 100238,
     website: "http://skse.silverlock.org/",
-    pictureURL: "https://staticdelivery.nexusmods.com/mods/1704/images/thumbnails/30379/30379-1573836905-2108386036.jpeg",
-    regex: /(beta\/sksevr_[0-9]+_[0-9]+_[0-9]+.7z)/i
+    regex: /(beta\/sksevr_[0-9]+_[0-9]+_[0-9]+.7z)/i,
+    attributes: (xseVersion) => {
+      return [{ type: "attribute", key: "version", value: xseVersion}, ...xseAttributes.skyrimvr];
+    }
   },
   "fallout4" : {
     name: "Fallout 4 Script Extender (F4SE)",
     scriptExtExe: "f4se_loader.exe",
-    nexusPage: "https://www.nexusmods.com/fallout4/mods/42147",
-    nexusFileId: 172157,
-    nexusModId: 42147,
     website: "http://f4se.silverlock.org/",
-    pictureURL: "https://staticdelivery.nexusmods.com/mods/1151/images/thumbnails/42147/42147-1574018373-1181117442.jpeg",
-    regex: /(beta\/f4se_[0-9]+_[0-9]+_[0-9]+.7z)/i
+    regex: /(beta\/f4se_[0-9]+_[0-9]+_[0-9]+.7z)/i,
+    attributes: (xseVersion) => {
+      return [{ type: "attribute", key: "version", value: xseVersion}, ...xseAttributes.fallout4];
+    }
   },
   "fallout4vr" : {
     name: "Fallout 4 Script Extender VR (F4SE)",
     scriptExtExe: "f4vser_loader.exe",
-    nexusPage: "https://www.nexusmods.com/fallout4/mods/42159",
-    nexusFileId: 171114,
-    nexusModId: 42159,
     website: "http://f4se.silverlock.org/",
-    pictureURL: "https://staticdelivery.nexusmods.com/mods/1151/images/thumbnails/42147/42147-1574018373-1181117442.jpeg",
-    regex: /(beta\/f4sevr_[0-9]+_[0-9]+_[0-9]+.7z)/i
+    regex: /(beta\/f4sevr_[0-9]+_[0-9]+_[0-9]+.7z)/i,
+    attributes: (xseVersion) => {
+      return [{ type: "attribute", key: "version", value: xseVersion}, ...xseAttributes.fallout4vr];
+    }
   },
   "falloutnv" : {
     name: "New Vegas Script Extender (NVSE)",
     scriptExtExe: "nvse_loader.exe",
-    nexusPage: "https://www.nexusmods.com/newvegas/mods/67883",
-    nexusFileId: 1000057601,
-    nexusModId: 67883,
     website: "http://nvse.silverlock.org/",
-    pictureURL: "https://staticdelivery.nexusmods.com/mods/130/images/thumbnails/67883/67883-1574092217-1384714337.jpeg",
-    regex: /(download\/nvse_[0-9]+_[0-9]+_[a-zA-Z0-9]+.7z)/i
+    regex: /(download\/nvse_[0-9]+_[0-9]+_[a-zA-Z0-9]+.7z)/i,
+    attributes: (xseVersion) => {
+      return [{ type: "attribute", key: "version", value: xseVersion}, ...xseAttributes.falloutnv];
+    }
   },
   "fallout3" : {
     name: "Fallout Script Extender (FOSE)",
     scriptExtExe: "fose_loader.exe",
-    nexusPage: "https://www.nexusmods.com/fallout3/mods/8606",
-    nexusFileId: 1000018411,
-    nexusModId: 8606,
     website: "http://fose.silverlock.org/",
-    pictureURL: "",
-    regex: /(download\/obse_[0-9]+.zip)/i
+    regex: /(download\/obse_[0-9]+.zip)/i,
+    attributes: (xseVersion) => {
+      return [{ type: "attribute", key: "version", value: xseVersion}, ...xseAttributes.fallout3];
+    }
   },
   "oblivion" : {
     name: "Oblivion Script Extender (OBSE)",
     scriptExtExe: "obse_loader.exe",
-    nexusPage: "https://www.nexusmods.com/oblivion/mods/37952",
-    nexusFileId: 1000005268,
-    nexusModId: 37952,
     website: "http://obse.silverlock.org/",
-    pictureURL: "https://staticdelivery.nexusmods.com/mods/101/images/thumbnails/37952-1-1369833903.png",
-    regex: /(download\/fose_[0-9]+_[0-9]+_[a-zA-Z0-9]+.7z)/i
-  },
-  //MWSE is only on Nexus Mods or Github, so will have to be handled differently. 
-  // "morrowind" : {
-  //   name: "Morrowind Script Extender (MWSE)",
-  //   scriptExtExe: "MWSE.dll",
-  //   nexusPage: "https://www.nexusmods.com/morrowind/mods/45468",
-  //   nexusFileId: 1000009574,
-  //   nexusModId: 45468,
-  //   website: "https://github.com/MWSE/MWSE/releases",
-  //   regex: /(download\/fose_[0-9]+_[0-9]+_[a-zA-Z0-9]+.7z)/i,
-  //   latestVersion: '2.0.0'
-  // },
-}
+    regex: /(download\/fose_[0-9]+_[0-9]+_[a-zA-Z0-9]+.7z)/i,
+    attributes: (xseVersion) => {
+      return [{ type: "attribute", key: "version", value: xseVersion}, ...xseAttributes.oblivion];
+    }
+  }
+};
 
 
 const getScriptExtenderVersion = (path : string): Promise<string> => {
@@ -139,28 +122,44 @@ function testScriptExtender(instructions, api) {
 }
 
 async function onCheckModVersion(api, gameId, mods) {
+  // Clear any update notifications.
+  api.dismissNotification('scriptextender-update');
+
+  // Exit if this isn't a supported game.
   if (!supportData[gameId]) return;
   const gameSupport = supportData[gameId];
   const gamePath = getGamePath(gameId, api);
 
+  // Get the version of the installed script extender
   const scriptExtenderVersion : string = await getScriptExtenderVersion(path.join(gamePath, gameSupport.scriptExtExe));
+  // If there is no script extender installed, return.
   if (!scriptExtenderVersion) return;
 
+  // Convert the mods object into an array.
   const modArray = Object.keys(mods).map(k => mods[k]);
-  const scriptExtenders = modArray.filter(mod => mod.attributes.scriptExtender);
-  const latestVersion = await checkForUpdate(api, gameSupport, scriptExtenderVersion);
-  if (!latestVersion) return;
+  // Get active profile, so we know which mods are enabled.
+  const profile = selectors.activeProfile(api.store.getState());
+  // Filter out any non-script extender mods or those which are disabled (old versions).
+  const scriptExtenders = modArray.filter(mod => mod.attributes.scriptExtender && profile.modState[mod.id].enabled);
 
+  // Check for update.
+  const latestVersion : string = await checkForUpdate(api, gameSupport, scriptExtenderVersion);
+
+  // If we fail to get the latest version or it's an exact match for our installed script extender, return.
+  if (!latestVersion || latestVersion === scriptExtenderVersion) return;
+
+  // Iterate through our script extenders to add the version update info.
   scriptExtenders.forEach(xse => {
-    if(xse.attributes.version !== latestVersion && xse.attributes.newestVersion !== latestVersion) {
-      api.store.dispatch(actions.setModAttributes(gameId, xse.id, { newestFileId: "unknown", newestVersion: latestVersion }));
+    if(xse.attributes.version !== latestVersion) {
+      api.store.dispatch(actions.setModAttributes(gameId, xse.id, { newestFileId: "unknown", newestVersion: latestVersion, bugMessage: "Well this is annoying!" }));
     }
   });
 }
 
 async function onGameModeActivated(api, gameId: string) {
   // Clear script extender notifications from other games.
-  api.dismissNotification('scriptextender');
+  api.dismissNotification('scriptextender-missing');
+  api.dismissNotification('scriptextender-update');
 
   // If the game is unsupported, exit here. 
   if (!supportData[gameId]) return false;
@@ -185,8 +184,7 @@ async function onGameModeActivated(api, gameId: string) {
   else if (!gameSupport.latestVersion) return checkForUpdate(api, gameSupport, scriptExtenderVersion);
 }
 
-function checkForUpdate(api, gameSupport, scriptExtenderVersion: string) {
-  if (gameSupport.scriptExtExe === "MWSE.dll") return gameSupport.latestVersion; //Exit for Morrowind.
+function checkForUpdate(api, gameSupport, scriptExtenderVersion: string):Promise<string> {
   return new Promise((resolve, reject) => {
     https.get(gameSupport.website, {protocol : 'https:'}, (res : IncomingMessage) => {
       const { statusCode } = res;
@@ -234,7 +232,7 @@ function notifyNewVersion(latest :string, current: string, supportData, api) { /
   //Raise a notification.
   api.sendNotification({
     type: 'info',
-    id: 'scriptextender',
+    id: 'scriptextender-update',
     allowSuppress: true,
     title: `Update for ${supportData.name}`,
     message: `Latest: ${latest}, Installed: ${current}`,
@@ -246,6 +244,14 @@ function notifyNewVersion(latest :string, current: string, supportData, api) { /
             +'\nThe buttons below will open the script extender download page where you can download it directly into Vortex or through your browser. Please ensure you select the correct build for your game version. '
             +'\n\nIf you ignore this message, Vortex will not remind you again until you restart it.'
           }, [ 
+              {
+                label: 'Ignore',
+                action: () => {
+                  // Ignore this update until Vortex is restarted.
+                  supportData.ignore = true;
+                  dismiss();
+                }
+              },
               {
                 label: 'Open in Vortex',
                 action: () => {
@@ -261,14 +267,6 @@ function notifyNewVersion(latest :string, current: string, supportData, api) { /
                   util.opn(supportData.website);
                   dismiss();
                 }
-              }, 
-              {
-                label: 'Ignore',
-                action: () => {
-                  // Ignore this update until Vortex is restarted.
-                  supportData.ignore = true;
-                  dismiss();
-                }
               } 
             ])
 
@@ -280,7 +278,7 @@ function notifyNewVersion(latest :string, current: string, supportData, api) { /
 function notifyNotInstalled(supportData, api) {
   api.sendNotification({
     type: 'info',
-    id: 'scriptextender',
+    id: 'scriptextender-missing',
     title: 'Script Extender not installed',
     allowSuppress: true,
     message: supportData.name,
@@ -294,6 +292,13 @@ function notifyNotInstalled(supportData, api) {
             +'\n\nIf you ignore this notice, Vortex will not remind you again until it is restarted.'
           }, [
             {
+              label: 'Remind me next time',
+              action: () => {
+                supportData.ignore = true;
+                dismiss();
+              }
+            },
+            {
               label: 'Open in Vortex',
               action: () => {
                 api.store.dispatch(actions.showURL(supportData.website));
@@ -304,13 +309,6 @@ function notifyNotInstalled(supportData, api) {
               label: 'Open in browser',
               action: () => {
                 util.opn(supportData.website);
-                dismiss();
-              }
-            },
-            {
-              label: 'Remind me next time',
-              action: () => {
-                supportData.ignore = true;
                 dismiss();
               }
             }
@@ -336,34 +334,23 @@ async function installScriptExtender(context, files: string[], destinationPath: 
   const idx = scriptExtender.indexOf(path.basename(scriptExtender));
   const rootPath = path.dirname(scriptExtender);
 
-  const modId = path.basename(destinationPath, '.installing');
+  // Get the attribute data we need.
   const scriptExtenderVersion = await getScriptExtenderVersion(path.join(destinationPath, scriptExtender));
-  const modAtrributes = {
-    allowRating: false,
-    downloadGame: gameId,
-    fileId: gameData.nexusFileId,
-    modId: gameData.nexusModId.toString(),
-    logicalFileName: gameData.name,
-    source: "nexus",
-    homepage: gameData.website,
-    pictureURL: gameData.pictureURL,
-    version: scriptExtenderVersion,
-    scriptExtender: true
-  };
-  context.api.store.dispatch(actions.setModAttributes(gameId, modId, modAtrributes));
+  const attributes = gameData.attributes(scriptExtenderVersion);
   
   // Remove directories and anything that isn't in the rootPath.
   const filtered = files.filter(file => 
     ((file.indexOf(rootPath) !== -1) 
     && (!file.endsWith(path.sep))));
 
+  // Build install instructions and attach attributes to it. 
   const instructions = filtered.map(file => {
     return {
       type: 'copy',
       source: file,
       destination: path.join(file.substr(idx)),
     };
-  });
+  }).concat(attributes);
 
   return Promise.resolve({ instructions });
 }
