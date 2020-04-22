@@ -1,9 +1,10 @@
 import { actions, fs, log, selectors, types, util } from 'vortex-api';
 import * as path from 'path';
-import * as https from 'https';
+import * as http from 'http';
 import { IncomingMessage } from 'http';
 import getVersion from 'exe-version';
 import * as semver from 'semver';
+import { createCipher } from 'crypto';
 
 const xseAttributes = require('../xse-attributes.json');
 
@@ -11,7 +12,7 @@ let supportData ={
   "skyrim" : {
     name: "Skyrim Script Extender (SKSE)",
     scriptExtExe: "skse_loader.exe",
-    website: "http://skse.silverlock.org/",
+    website: "https://skse.silverlock.org/",
     regex: /(beta\/skse_[0-9]+_[0-9]+_[0-9]+.7z)/i,
     attributes: (xseVersion) => {
       return [{ type: "attribute", key: "version", value: xseVersion}, ...xseAttributes.skyrim];
@@ -20,7 +21,7 @@ let supportData ={
   "skyrimse" : {
     name: "Skyrim Script Extender 64 (SKSE64)",
     scriptExtExe: "skse64_loader.exe",
-    website: "http://skse.silverlock.org/",
+    website: "https://skse.silverlock.org/",
     regex: /(beta\/skse64_[0-9]+_[0-9]+_[0-9]+.7z)/i,
     attributes: (xseVersion) => {
       return [{ type: "attribute", key: "version", value: xseVersion}, ...xseAttributes.skyrimse];
@@ -29,7 +30,7 @@ let supportData ={
   "skyrimvr" : {
     name: "Skyrim Script Extender VR (SKSEVR)",
     scriptExtExe: "sksevr_loader.exe",
-    website: "http://skse.silverlock.org/",
+    website: "https://skse.silverlock.org/",
     regex: /(beta\/sksevr_[0-9]+_[0-9]+_[0-9]+.7z)/i,
     attributes: (xseVersion) => {
       return [{ type: "attribute", key: "version", value: xseVersion}, ...xseAttributes.skyrimvr];
@@ -38,7 +39,7 @@ let supportData ={
   "fallout4" : {
     name: "Fallout 4 Script Extender (F4SE)",
     scriptExtExe: "f4se_loader.exe",
-    website: "http://f4se.silverlock.org/",
+    website: "https://f4se.silverlock.org/",
     regex: /(beta\/f4se_[0-9]+_[0-9]+_[0-9]+.7z)/i,
     attributes: (xseVersion) => {
       return [{ type: "attribute", key: "version", value: xseVersion}, ...xseAttributes.fallout4];
@@ -47,7 +48,7 @@ let supportData ={
   "fallout4vr" : {
     name: "Fallout 4 Script Extender VR (F4SE)",
     scriptExtExe: "f4vser_loader.exe",
-    website: "http://f4se.silverlock.org/",
+    website: "https://f4se.silverlock.org/",
     regex: /(beta\/f4sevr_[0-9]+_[0-9]+_[0-9]+.7z)/i,
     attributes: (xseVersion) => {
       return [{ type: "attribute", key: "version", value: xseVersion}, ...xseAttributes.fallout4vr];
@@ -66,7 +67,7 @@ let supportData ={
     name: "Fallout Script Extender (FOSE)",
     scriptExtExe: "fose_loader.exe",
     website: "http://fose.silverlock.org/",
-    regex: /(download\/obse_[0-9]+.zip)/i,
+    regex: /(download\/fose_[0-9]+_[0-9]+_[a-zA-Z0-9]+.7z)/i,
     attributes: (xseVersion) => {
       return [{ type: "attribute", key: "version", value: xseVersion}, ...xseAttributes.fallout3];
     }
@@ -75,7 +76,7 @@ let supportData ={
     name: "Oblivion Script Extender (OBSE)",
     scriptExtExe: "obse_loader.exe",
     website: "http://obse.silverlock.org/",
-    regex: /(download\/fose_[0-9]+_[0-9]+_[a-zA-Z0-9]+.7z)/i,
+    regex: /(download\/obse_[0-9]+.zip)/i,
     attributes: (xseVersion) => {
       return [{ type: "attribute", key: "version", value: xseVersion}, ...xseAttributes.oblivion];
     }
@@ -186,14 +187,15 @@ async function onGameModeActivated(api, gameId: string) {
 
 function checkForUpdate(api, gameSupport, scriptExtenderVersion: string):Promise<string> {
   return new Promise((resolve, reject) => {
-    https.get(gameSupport.website, {protocol : 'https:'}, (res : IncomingMessage) => {
+    http.get(gameSupport.website, {protocol : 'http:'}, (res : IncomingMessage) => {
       const { statusCode } = res;
       if (statusCode !== 200) return resolve(gameSupport.latestVersion);
       res.setEncoding('utf8');
       let rawData = '';
       res.on('data', (chunk) => rawData += chunk);
       res.on('end', () => {
-        // We just loaded the Script Extender Website website. Find our download link.
+        try {
+          // We just loaded the Script Extender Website website. Find our download link.
         const urlpath : string = rawData.match(gameSupport.regex)[0];
   
         // Remove the beta tag for the file name.
@@ -204,7 +206,7 @@ function checkForUpdate(api, gameSupport, scriptExtenderVersion: string):Promise
   
         // We need to clean this up to make it semantic. By replacing underscores with dots, replacing double zeros with single zeros and removing leading zeros.
         // If we choose not to download directly, the regex can be adjusted to find the version in the text. 
-        const newVersion : string = downloadName.match(/_([0-9]+_[0-9]+_[0-9]+)/i)[1].replace(/\_/g, '.').replace(/[0]+/g, '0').replace(/(0)[1-9]/g, (replacement) => replacement.replace('0',''));
+        const newVersion : string = downloadName.match(/_([0-9]+_[0-9]+_[0-9a-z]+)/i)[1].replace(/\_/g, '.').replace(/([a-z]+)/g, '').replace(/[0]+/g, '0').replace(/(0)[1-9]/g, (replacement) => replacement.replace('0',''));
   
         // If it's still not semantic, try coercing it.
         const latestVersion : string = semver.valid(newVersion) ? newVersion : semver.coerce(newVersion);
@@ -220,6 +222,11 @@ function checkForUpdate(api, gameSupport, scriptExtenderVersion: string):Promise
         if (semver.gt(latestVersion, scriptExtenderVersion)) notifyNewVersion(latestVersion, scriptExtenderVersion, gameSupport, api); //could send [gameSupport.website, urlpath] to allow downloads.
   
         return resolve(latestVersion);
+        }
+        catch(err) {
+          log('error', 'Error geting script extender data', err);
+          return resolve(gameSupport.latestVersion);
+        }
       });
     }).on('error', (err: Error) => {
       log('error', 'Error getting script extender data', err);

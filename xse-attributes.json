@@ -13,7 +13,7 @@
       {
           "type" : "attribute",
           "key" : "homepage",
-          "value" : "http://skse.silverlock.org/"
+          "value" : "https://skse.silverlock.org/"
       },
       {
           "type" : "attribute",
@@ -50,7 +50,7 @@
         {
             "type" : "attribute",
             "key" : "homepage",
-            "value" : "http://skse.silverlock.org/"
+            "value" : "https://skse.silverlock.org/"
         },
         {
             "type" : "attribute",
@@ -87,7 +87,7 @@
         {
             "type" : "attribute",
             "key" : "homepage",
-            "value" : "http://skse.silverlock.org/"
+            "value" : "https://skse.silverlock.org/"
         },
         {
             "type" : "attribute",
@@ -124,7 +124,7 @@
         {
             "type" : "attribute",
             "key" : "homepage",
-            "value" : "http://f4se.silverlock.org/"
+            "value" : "https://f4se.silverlock.org/"
         },
         {
             "type" : "attribute",
@@ -161,7 +161,7 @@
         {
             "type" : "attribute",
             "key" : "homepage",
-            "value" : "http://f4se.silverlock.org/"
+            "value" : "https://f4se.silverlock.org/"
         },
         {
             "type" : "attribute",
