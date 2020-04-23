@@ -334,7 +334,7 @@ function testSupported(files : string[], gameId: string) : Promise<types.ISuppor
   });
 }
 
-async function installScriptExtender(context, files: string[], destinationPath: string, gameId: string) {
+async function installScriptExtender(files: string[], destinationPath: string, gameId: string) {
   // Install the script extender.
   const gameData = supportData[gameId];
   const scriptExtender = files.find(file => path.basename(file).toLowerCase() === gameData.scriptExtExe.toLowerCase());
@@ -363,7 +363,7 @@ async function installScriptExtender(context, files: string[], destinationPath: 
 }
 
 function main(context: types.IExtensionContext) {
-  context.registerInstaller('script-extender-installer', 10, testSupported, (files, destinationPath, gameId) => installScriptExtender(context, files, destinationPath, gameId));
+  context.registerInstaller('script-extender-installer', 10, testSupported, installScriptExtender);
   context.registerModType('script-extender', 10, (game) => supportData[game], (game: types.IGame) => getGamePath(game.id, context.api), (instructions) => testScriptExtender(instructions, context.api), {mergeMods: true});
   context.once(() => {
     context.api.events.on('gamemode-activated', async (gameId : string) => onGameModeActivated(context.api, gameId));
