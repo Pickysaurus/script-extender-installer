@@ -34,6 +34,16 @@
           "type" : "attribute",
           "key" : "author",
           "value" : "SKSE Team"
+      },
+      {
+        "type" : "attribute",
+        "key" : "category",
+        "value" : 39
+      },
+      {
+        "type" : "attribute",
+        "key" : "shortDescription",
+        "value" : "The Skyrim Script Extender (SKSE) is a tool used by many Skyrim mods that expands scripting capabilities and adds additional functionality to the game."
       }
   ],
   "skyrimse" : [
@@ -71,6 +81,16 @@
             "type" : "attribute",
             "key" : "author",
             "value" : "SKSE Team"
+        },
+        {
+            "type" : "attribute",
+            "key" : "category",
+            "value" : 39
+        },
+        {
+            "type" : "attribute",
+            "key" : "shortDescription",
+            "value" : "The Skyrim Script Extender (SKSE) is a tool used by many Skyrim mods that expands scripting capabilities and adds additional functionality to the game."
         }
   ],
   "skyrimvr" : [
@@ -108,6 +128,16 @@
             "type" : "attribute",
             "key" : "author",
             "value" : "SKSE Team"
+        },
+        {
+            "type" : "attribute",
+            "key" : "category",
+            "value" : 39
+        },
+        {
+            "type" : "attribute",
+            "key" : "shortDescription",
+            "value" : "The Skyrim Script Extender (SKSE) is a tool used by many Skyrim mods that expands scripting capabilities and adds additional functionality to the game."
         }
   ],
   "fallout4" : [
@@ -145,6 +175,16 @@
             "type" : "attribute",
             "key" : "author",
             "value" : "F4SE Team"
+        },
+        {
+            "type" : "attribute",
+            "key" : "category",
+            "value" : 38
+        },
+        {
+            "type" : "attribute",
+            "key" : "shortDescription",
+            "value" : "The Fallout 4 Script Extender, or F4SE for short, is a modder's resource that expands the scripting capabilities of Fallout 4. It does so without modifying the executable files on disk, so there are no permanent side effects."
         }
   ],
   "fallout4vr": [
@@ -182,6 +222,16 @@
             "type" : "attribute",
             "key" : "author",
             "value" : "F4SE Team"
+        },
+        {
+            "type" : "attribute",
+            "key" : "category",
+            "value" : 38
+        },
+        {
+            "type" : "attribute",
+            "key" : "shortDescription",
+            "value" : "The Fallout 4 Script Extender, or F4SE for short, is a modder's resource that expands the scripting capabilities of Fallout 4. It does so without modifying the executable files on disk, so there are no permanent side effects."
         }
   ],
   "falloutnv": [
@@ -219,6 +269,16 @@
             "type" : "attribute",
             "key" : "author",
             "value" : "NVSE Team"
+        },
+        {
+            "type" : "attribute",
+            "key" : "category",
+            "value" : 59
+        },
+        {
+            "type" : "attribute",
+            "key" : "shortDescription",
+            "value" : "The New Vegas Script Extender, or NVSE for short, is a modder's resource that expands the scripting capabilities of Fallout: NV. It does so without modifying the executable files on disk, so there are no permanent side effects."
         }
   ],
   "fallout3" : [
@@ -256,6 +316,16 @@
             "type" : "attribute",
             "key" : "author",
             "value" : "FOSE Team"
+        },
+        {
+            "type" : "attribute",
+            "key" : "category",
+            "value" : 59
+        },
+        {
+            "type" : "attribute",
+            "key" : "shortDescription",
+            "value" : "Expands the scripting capabilities of Fallout 3 allowing for more complex and feature-rich mods."
         }
   ],
   "oblivion" : [
@@ -293,6 +363,16 @@
             "type" : "attribute",
             "key" : "author",
             "value" : "OBSE Team"
+        },
+        {
+            "type" : "attribute",
+            "key" : "category",
+            "value" : 39
+        },
+        {
+            "type" : "attribute",
+            "key" : "shortDescription",
+            "value" : "OBSE extends the scripting capabilities of Oblivion."
         }
   ]
 }
