@@ -16,7 +16,8 @@ let supportData ={
     regex: /(beta\/skse_[0-9]+_[0-9]+_[0-9]+.7z)/i,
     attributes: (xseVersion) => {
       return [{ type: "attribute", key: "version", value: xseVersion}, ...xseAttributes.skyrim];
-    }
+    },
+    latestVersion: '1.7.3'
   },
   "skyrimse" : {
     name: "Skyrim Script Extender 64 (SKSE64)",
@@ -25,7 +26,8 @@ let supportData ={
     regex: /(beta\/skse64_[0-9]+_[0-9]+_[0-9]+.7z)/i,
     attributes: (xseVersion) => {
       return [{ type: "attribute", key: "version", value: xseVersion}, ...xseAttributes.skyrimse];
-    }
+    },
+    latestVersion: '2.0.17'
   },
   "skyrimvr" : {
     name: "Skyrim Script Extender VR (SKSEVR)",
@@ -34,7 +36,8 @@ let supportData ={
     regex: /(beta\/sksevr_[0-9]+_[0-9]+_[0-9]+.7z)/i,
     attributes: (xseVersion) => {
       return [{ type: "attribute", key: "version", value: xseVersion}, ...xseAttributes.skyrimvr];
-    }
+    },
+    latestVersion: '2.0.11'
   },
   "fallout4" : {
     name: "Fallout 4 Script Extender (F4SE)",
@@ -43,7 +46,8 @@ let supportData ={
     regex: /(beta\/f4se_[0-9]+_[0-9]+_[0-9]+.7z)/i,
     attributes: (xseVersion) => {
       return [{ type: "attribute", key: "version", value: xseVersion}, ...xseAttributes.fallout4];
-    }
+    },
+    latestVersion: '0.6.21'
   },
   "fallout4vr" : {
     name: "Fallout 4 Script Extender VR (F4SE)",
@@ -52,7 +56,8 @@ let supportData ={
     regex: /(beta\/f4sevr_[0-9]+_[0-9]+_[0-9]+.7z)/i,
     attributes: (xseVersion) => {
       return [{ type: "attribute", key: "version", value: xseVersion}, ...xseAttributes.fallout4vr];
-    }
+    },
+    latestVersion: '0.6.20'
   },
   "falloutnv" : {
     name: "New Vegas Script Extender (NVSE)",
@@ -61,7 +66,8 @@ let supportData ={
     regex: /(download\/nvse_[0-9]+_[0-9]+_[a-zA-Z0-9]+.7z)/i,
     attributes: (xseVersion) => {
       return [{ type: "attribute", key: "version", value: xseVersion}, ...xseAttributes.falloutnv];
-    }
+    },
+    latestVersion: '5.1.4'
   },
   "fallout3" : {
     name: "Fallout Script Extender (FOSE)",
@@ -70,7 +76,8 @@ let supportData ={
     regex: /(download\/fose_[0-9]+_[0-9]+_[a-zA-Z0-9]+.7z)/i,
     attributes: (xseVersion) => {
       return [{ type: "attribute", key: "version", value: xseVersion}, ...xseAttributes.fallout3];
-    }
+    },
+    latestVersion: '1.2.2'
   },
   "oblivion" : {
     name: "Oblivion Script Extender (OBSE)",
@@ -79,7 +86,8 @@ let supportData ={
     regex: /(download\/obse_[0-9]+.zip)/i,
     attributes: (xseVersion) => {
       return [{ type: "attribute", key: "version", value: xseVersion}, ...xseAttributes.oblivion];
-    }
+    },
+    latestVersion: '0021'
   }
 };
 
@@ -124,7 +132,7 @@ function testScriptExtender(instructions, api) {
 
 async function onCheckModVersion(api, gameId, mods) {
   // Clear any update notifications.
-  api.dismissNotification('scriptextender-update');
+  clearNotifications(api, true);
 
   // Exit if this isn't a supported game.
   if (!supportData[gameId]) return;
@@ -159,8 +167,7 @@ async function onCheckModVersion(api, gameId, mods) {
 
 async function onGameModeActivated(api, gameId: string) {
   // Clear script extender notifications from other games.
-  api.dismissNotification('scriptextender-missing');
-  api.dismissNotification('scriptextender-update');
+  clearNotifications(api);
 
   // If the game is unsupported, exit here. 
   if (!supportData[gameId]) return false;
@@ -172,6 +179,13 @@ async function onGameModeActivated(api, gameId: string) {
   //Get our game path.
   const activegame : types.IGame = util.getGame(gameId);
   const gamePath = getGamePath(activegame.id, api);
+
+  //Check for disabled (but installed) script extenders.
+  const mods = util.getSafe(api.store.getState(), ['persistent', 'mods', gameId], undefined);
+  const modArray = mods ? Object.keys(mods).map(k => mods[k]) : undefined;
+  const installedScriptExtenders = modArray ? modArray.filter(mod => mod.attributes.scriptExtender).length : 0;
+  if (installedScriptExtenders) return;
+
 
   // Grab our current script extender version. 
   const scriptExtenderVersion : string = await getScriptExtenderVersion(path.join(gamePath, gameSupport.scriptExtExe));
@@ -237,9 +251,11 @@ function checkForUpdate(api, gameSupport, scriptExtenderVersion: string):Promise
 
 function notifyNewVersion(latest :string, current: string, supportData, api) { //could add url : string[], for the download URL
   //Raise a notification.
+  const gameId = selectors.activeGameId(api.store.getState());
+
   api.sendNotification({
     type: 'info',
-    id: 'scriptextender-update',
+    id: `scriptextender-update-${gameId}`,
     allowSuppress: true,
     title: `Update for ${supportData.name}`,
     message: `Latest: ${latest}, Installed: ${current}`,
@@ -263,8 +279,18 @@ function notifyNewVersion(latest :string, current: string, supportData, api) { /
                 label: 'Open in Vortex',
                 action: () => {
                   // Open the script extender site in Vortex. 
-                  api.store.dispatch(actions.showURL(supportData.website));
-                  dismiss();
+                  api.emitAndAwait('browse-for-download', supportData.website, `To install ${supportData.name}, download the 7z archive for v${latest}.`)
+                  .then((result : string[]) => {
+                    const correctFile = result[0].match(supportData.regex);
+                    console.log(correctFile)
+                    !!correctFile ? api.events.emit('start-download', result, {}, supportData.name, (error, id) => {
+                      api.events.emit('start-install-download', id, true, (err, modId) => {
+                        if (err) return log('error', 'Error installing download', err);
+                        dismiss();
+                      });
+                    }, 'never') : api.sendNotification({type: 'warning', id: 'scriptextender-wrong', title: `Script Extender Mismatch - ${path.basename(result[0])}`, message: 'Looks like you selected the wrong file. Please try again.'});
+                  })
+                  .catch(err => log('error', 'Error browsing for download', err));
                 }
               }, 
               {
@@ -283,9 +309,11 @@ function notifyNewVersion(latest :string, current: string, supportData, api) { /
 }
 
 function notifyNotInstalled(supportData, api) {
+  const gameId = selectors.activeGameId(api.store.getState());
+
   api.sendNotification({
     type: 'info',
-    id: 'scriptextender-missing',
+    id: `scriptextender-missing-${gameId}`,
     title: 'Script Extender not installed',
     allowSuppress: true,
     message: supportData.name,
@@ -308,14 +336,24 @@ function notifyNotInstalled(supportData, api) {
             {
               label: 'Open in Vortex',
               action: () => {
-                api.store.dispatch(actions.showURL(supportData.website));
-                dismiss();
+                api.emitAndAwait('browse-for-download', supportData.website, `To install ${supportData.name}, download the 7z archive for v${supportData.latestVersion}.`)
+                .then((result : string[]) => {
+                  const correctFile = result[0].match(supportData.regex);
+                  console.log(correctFile)
+                  !!correctFile ? api.events.emit('start-download', result, {}, supportData.name, (error, id) => {
+                    api.events.emit('start-install-download', id, true, (err, modId) => {
+                      if (err) return log('error', 'Error installing download', err);
+                      dismiss();
+                    });
+                  }, 'never') : api.sendNotification({type: 'warning', id: 'scriptextender-wrong', title: `Script Extender Mismatch - ${path.basename(result[0])}`, message: 'Looks like you selected the wrong file. Please try again.'});
+                })
+                .catch(err => log('error', 'Error browsing for download', err));
               }
             },
             {
               label: 'Open in browser',
               action: () => {
-                util.opn(supportData.website);
+                util.opn(supportData.website).catch(err => undefined);
                 dismiss();
               }
             }
@@ -323,6 +361,13 @@ function notifyNotInstalled(supportData, api) {
         }
       }
     ]
+  })
+}
+
+function clearNotifications(api, preserveMissing? : boolean) {
+  Object.keys(supportData).forEach(key => {
+    !preserveMissing ? api.dismissNotification(`scriptextender-missing-${key}`) : null;
+    api.dismissNotification(`scriptextender-update-${key}`);
   })
 }
 
