@@ -281,14 +281,14 @@ function notifyNewVersion(latest :string, current: string, supportData, api) { /
                   // Open the script extender site in Vortex. 
                   api.emitAndAwait('browse-for-download', supportData.website, `To install ${supportData.name}, download the 7z archive for v${latest}.`)
                   .then((result : string[]) => {
-                    const correctFile = result[0].match(supportData.regex);
-                    console.log(correctFile)
-                    !!correctFile ? api.events.emit('start-download', result, {}, supportData.name, (error, id) => {
+                    const downloadUrl = result[0].indexOf('<') ? result[0].split('<')[0] : result[0];
+                    const correctFile = downloadUrl.match(supportData.regex);
+                    !!correctFile ? api.events.emit('start-download', [downloadUrl], {}, supportData.name, (error, id) => {
                       api.events.emit('start-install-download', id, true, (err, modId) => {
                         if (err) return log('error', 'Error installing download', err);
                         dismiss();
                       });
-                    }, 'never') : api.sendNotification({type: 'warning', id: 'scriptextender-wrong', title: `Script Extender Mismatch - ${path.basename(result[0])}`, message: 'Looks like you selected the wrong file. Please try again.'});
+                    }, 'never') : api.sendNotification({type: 'warning', id: 'scriptextender-wrong', title: `Script Extender Mismatch - ${path.basename(downloadUrl)}`, message: 'Looks like you selected the wrong file. Please try again.'});
                   })
                   .catch(err => log('error', 'Error browsing for download', err));
                 }
@@ -338,14 +338,14 @@ function notifyNotInstalled(supportData, api) {
               action: () => {
                 api.emitAndAwait('browse-for-download', supportData.website, `To install ${supportData.name}, download the 7z archive for v${supportData.latestVersion}.`)
                 .then((result : string[]) => {
-                  const correctFile = result[0].match(supportData.regex);
-                  console.log(correctFile)
-                  !!correctFile ? api.events.emit('start-download', result, {}, supportData.name, (error, id) => {
+                  const downloadUrl = result[0].indexOf('<') ? result[0].split('<')[0] : result[0];
+                  const correctFile = downloadUrl.match(supportData.regex);
+                  !!correctFile ? api.events.emit('start-download', [downloadUrl], {}, supportData.name, (error, id) => {
                     api.events.emit('start-install-download', id, true, (err, modId) => {
                       if (err) return log('error', 'Error installing download', err);
                       dismiss();
                     });
-                  }, 'never') : api.sendNotification({type: 'warning', id: 'scriptextender-wrong', title: `Script Extender Mismatch - ${path.basename(result[0])}`, message: 'Looks like you selected the wrong file. Please try again.'});
+                  }, 'never') : api.sendNotification({type: 'warning', id: 'scriptextender-wrong', title: `Script Extender Mismatch - ${path.basename(downloadUrl)}`, message: 'Looks like you selected the wrong file. Please try again.'});
                 })
                 .catch(err => log('error', 'Error browsing for download', err));
               }
