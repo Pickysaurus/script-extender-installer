@@ -297,7 +297,7 @@ function notifyNewVersion(latest :string, current: string, supportData, api) { /
                 label: 'Open in browser',
                 action: () => {
                   // Open the script extender site in Vortex. 
-                  util.opn(supportData.website);
+                  util.opn(supportData.website).catch(err => undefined);
                   dismiss();
                 }
               } 

@@ -44,6 +44,11 @@
         "type" : "attribute",
         "key" : "shortDescription",
         "value" : "The Skyrim Script Extender (SKSE) is a tool used by many Skyrim mods that expands scripting capabilities and adds additional functionality to the game."
+      },
+      {
+        "type" : "attribute",
+        "key" : "modId",
+        "value" : "skse"
       }
   ],
   "skyrimse" : [
@@ -91,6 +96,11 @@
             "type" : "attribute",
             "key" : "shortDescription",
             "value" : "The Skyrim Script Extender (SKSE) is a tool used by many Skyrim mods that expands scripting capabilities and adds additional functionality to the game."
+        },
+        {
+            "type" : "attribute",
+            "key" : "modId",
+            "value" : "skse64"
         }
   ],
   "skyrimvr" : [
@@ -138,6 +148,11 @@
             "type" : "attribute",
             "key" : "shortDescription",
             "value" : "The Skyrim Script Extender (SKSE) is a tool used by many Skyrim mods that expands scripting capabilities and adds additional functionality to the game."
+        },
+        {
+            "type" : "attribute",
+            "key" : "modId",
+            "value" : "sksevr"
         }
   ],
   "fallout4" : [
@@ -185,6 +200,11 @@
             "type" : "attribute",
             "key" : "shortDescription",
             "value" : "The Fallout 4 Script Extender, or F4SE for short, is a modder's resource that expands the scripting capabilities of Fallout 4. It does so without modifying the executable files on disk, so there are no permanent side effects."
+        },
+        {
+            "type" : "attribute",
+            "key" : "modId",
+            "value" : "f4se"
         }
   ],
   "fallout4vr": [
@@ -232,6 +252,11 @@
             "type" : "attribute",
             "key" : "shortDescription",
             "value" : "The Fallout 4 Script Extender, or F4SE for short, is a modder's resource that expands the scripting capabilities of Fallout 4. It does so without modifying the executable files on disk, so there are no permanent side effects."
+        },
+        {
+            "type" : "attribute",
+            "key" : "modId",
+            "value" : "f4sevr"
         }
   ],
   "falloutnv": [
@@ -279,6 +304,11 @@
             "type" : "attribute",
             "key" : "shortDescription",
             "value" : "The New Vegas Script Extender, or NVSE for short, is a modder's resource that expands the scripting capabilities of Fallout: NV. It does so without modifying the executable files on disk, so there are no permanent side effects."
+        },
+        {
+            "type" : "attribute",
+            "key" : "modId",
+            "value" : "nvse"
         }
   ],
   "fallout3" : [
@@ -326,6 +356,11 @@
             "type" : "attribute",
             "key" : "shortDescription",
             "value" : "Expands the scripting capabilities of Fallout 3 allowing for more complex and feature-rich mods."
+        },
+        {
+            "type" : "attribute",
+            "key" : "modId",
+            "value" : "fose"
         }
   ],
   "oblivion" : [
@@ -373,6 +408,11 @@
             "type" : "attribute",
             "key" : "shortDescription",
             "value" : "OBSE extends the scripting capabilities of Oblivion."
+        },
+        {
+            "type" : "attribute",
+            "key" : "modId",
+            "value" : "obse"
         }
   ]
 }
