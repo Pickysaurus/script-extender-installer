@@ -391,8 +391,7 @@ async function installScriptExtender(files: string[], destinationPath: string, g
   const attributes = gameData.attributes(scriptExtenderVersion);
   // Include rules to make this conflict with any other script extender versions.
   attributes.push(
-    {type:'rule', rule: { reference: { logicalFileName: gameData.name, versionMatch: `>${scriptExtenderVersion}` }, type: 'conflicts', comment: 'Incompatible Script Extender' } },
-    {type:'rule', rule: { reference: { logicalFileName: gameData.name, versionMatch: `<${scriptExtenderVersion}` }, type: 'conflicts', comment: 'Incompatible Script Extender' } }
+    {type:'rule', rule: { reference: { logicalFileName: gameData.name, versionMatch: `<${scriptExtenderVersion} || >${scriptExtenderVersion}` }, type: 'conflicts', comment: 'Incompatible Script Extender' } }
   );
   
   // Remove directories and anything that isn't in the rootPath.
