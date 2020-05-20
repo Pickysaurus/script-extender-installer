@@ -6,9 +6,11 @@
     "noImplicitAny": false,
     "removeComments": true,
     "preserveConstEnums": true,
+    "resolveJsonModule": true,
     "rootDir": "./src",
     "outDir": "./out",
     "jsx": "react",
+    "skipLibCheck": true,
     "sourceMap": false
   },
     "exclude": [
