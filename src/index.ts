@@ -170,7 +170,6 @@ async function onCheckModVersion(api, gameId, mods) {
       api.store.dispatch(actions.setModAttributes(gameId, xse.id, {
         newestFileId: 'unknown',
         newestVersion: latestVersion,
-        bugMessage: 'Well this is annoying!',
       }));
     }
   });
@@ -269,7 +268,7 @@ function checkForUpdate(api, gameSupport, scriptExtenderVersion: string): Promis
         // If the version from the website is greater than the installed version, inform the user.
         if (semver.gt(latestVersion, scriptExtenderVersion)) {
           notifyNewVersion(latestVersion, scriptExtenderVersion, gameSupport, api);
-        } // could send [gameSupport.website, urlpath] to allow downloads.
+        }
 
         return resolve(latestVersion);
         } catch (err) {
