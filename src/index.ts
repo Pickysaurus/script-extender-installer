@@ -354,7 +354,7 @@ function notifyNewVersion(latest: string,
                         id: 'scriptextender-wrong',
                         title: t('Script Extender Mismatch - {{file}}',
                           { replace: { file: path.basename(downloadUrl) } }),
-                        message: 'Looks like you selected the wrong file. Please try again.',
+                        message: t('Looks like you selected the wrong file. Please try again.'),
                       });
                     }
                   })
@@ -431,7 +431,7 @@ function notifyNotInstalled(gameSupportData, api: types.IExtensionApi) {
                       id: 'scriptextender-wrong',
                       title: t('Script Extender Mismatch - {{file}}',
                         { replace: { file: path.basename(downloadUrl) } }),
-                      message: 'Looks like you selected the wrong file. Please try again.',
+                      message: t('Looks like you selected the wrong file. Please try again.'),
                     });
                   }
                 })
