@@ -290,19 +290,26 @@ function notifyNewVersion(latest: string,
                           api: types.IExtensionApi) {
   // Raise a notification.
   const gameId = selectors.activeGameId(api.store.getState());
+  const t = api.translate;
 
   api.sendNotification({
     type: 'info',
     id: `scriptextender-update-${gameId}`,
     allowSuppress: true,
-    title: `Update for ${gameSupportData.name}`,
-    message: `Latest: ${latest}, Installed: ${current}`,
+    title: t('Update for {{name}}', { replace: { name: gameSupportData.name } }),
+    message: t('Latest: {{latest}}, Installed: {{current}}', { replace: { latest, current } }),
     actions: [
       { title : 'More', action: (dismiss: () => void) => {
           api.showDialog('info', 'Script Extender Update', {
-            text: `Vortex has detected a newer version of ${gameSupportData.name} (${latest}) available to download from ${gameSupportData.website}. You currently have version ${current} installed.`
+            text: 'Vortex has detected a newer version of {{name}} ({{latest}}) available to download from {{website}}. You currently have version {{current}} installed.'
             + '\nThe buttons below will open the script extender download page where you can download it directly into Vortex or through your browser. Please ensure you select the correct build for your game version. '
             + '\n\nIf you ignore this message, Vortex will not remind you again until you restart it.',
+            parameters: {
+              name: gameSupportData.name,
+              latest,
+              website: gameSupportData.website,
+              current,
+            },
           }, [
               {
                 label: 'Ignore',
@@ -316,7 +323,10 @@ function notifyNewVersion(latest: string,
                 label: 'Open in Vortex',
                 action: () => {
                   const instructions =
-                    `To install ${gameSupportData.name}, download the 7z archive for v${latest}.`;
+                    t('To install {{name}}, download the 7z archive for {{latest}}.',
+                      { replace:
+                        { name: gameSupportData.name, latest: gameSupportData.latestVersion },
+                      });
                   // Open the script extender site in Vortex.
                   api.emitAndAwait('browse-for-download', gameSupportData.website, instructions)
                   .then((result: string[]) => {
@@ -326,9 +336,13 @@ function notifyNewVersion(latest: string,
 
                     const correctFile = downloadUrl.match(gameSupportData.regex);
                     if (!!correctFile) {
+                      const dlInfo = {
+                        game: gameId,
+                        name: gameSupportData.name,
+                      };
                       api.events.emit('start-download',
                                       [downloadUrl],
-                                      {},
+                                      dlInfo,
                                       gameSupportData.name,
                                       (error, id) => {
                           api.events.emit('start-install-download', id, true, (err, modId) => {
@@ -342,8 +356,9 @@ function notifyNewVersion(latest: string,
                       api.sendNotification({
                         type: 'warning',
                         id: 'scriptextender-wrong',
-                        title: `Script Extender Mismatch - ${path.basename(downloadUrl)}`,
-                        message: 'Looks like you selected the wrong file. Please try again.',
+                        title: t('Script Extender Mismatch - {{file}}',
+                          { replace: { file: path.basename(downloadUrl) } }),
+                        message: t('Looks like you selected the wrong file. Please try again.'),
                       });
                     }
                   })
@@ -367,6 +382,7 @@ function notifyNewVersion(latest: string,
 
 function notifyNotInstalled(gameSupportData, api: types.IExtensionApi) {
   const gameId = selectors.activeGameId(api.store.getState());
+  const t = api.translate;
 
   api.sendNotification({
     type: 'info',
@@ -379,9 +395,10 @@ function notifyNotInstalled(gameSupportData, api: types.IExtensionApi) {
         title: 'More',
         action: (dismiss) => {
           api.showDialog('info', `${gameSupportData.name} not found`, {
-            text: `Vortex could not detect ${gameSupportData.name}. This means it is either not installed or installed incorrectly.`
-            + `\n\nFor the best modding experience, we recommend installing the script extender by visiting ${gameSupportData.website}, Vortex can open the download page using the options below.`
+            text: 'Vortex could not detect {{name}}. This means it is either not installed or installed incorrectly.'
+            + '\n\nFor the best modding experience, we recommend installing the script extender by visiting {{website}}, Vortex can open the download page using the options below.'
             + '\n\nIf you ignore this notice, Vortex will not remind you again until it is restarted.',
+            parameters: { name: gameSupportData.name, website: gameSupportData.website },
           }, [
             {
               label: 'Remind me next time',
@@ -394,14 +411,20 @@ function notifyNotInstalled(gameSupportData, api: types.IExtensionApi) {
               label: 'Open in Vortex',
               action: () => {
                 const instructions =
-                  `To install ${gameSupportData.name}, `
-                  + `download the 7z archive for v${gameSupportData.latestVersion}.`;
+                t('To install {{name}}, download the 7z archive for {{latest}}.',
+                  { replace:
+                    { name: gameSupportData.name, latest: gameSupportData.latestVersion },
+                  });
                 api.emitAndAwait('browse-for-download', gameSupportData.website, instructions)
                 .then((result: string[]) => {
                   const downloadUrl = result[0].indexOf('<') ? result[0].split('<')[0] : result[0];
                   const correctFile = downloadUrl.match(gameSupportData.regex);
                   if (!!correctFile) {
-                    api.events.emit('start-download', [downloadUrl], {}, gameSupportData.name,
+                    const dlInfo = {
+                      game: gameId,
+                      name: gameSupportData.name,
+                    };
+                    api.events.emit('start-download', [downloadUrl], dlInfo, gameSupportData.name,
                       (error, id) => {
                         api.events.emit('start-install-download', id, true, (err, modId) => {
                           if (err) {
@@ -414,8 +437,9 @@ function notifyNotInstalled(gameSupportData, api: types.IExtensionApi) {
                     api.sendNotification({
                       type: 'warning',
                       id: 'scriptextender-wrong',
-                      title: `Script Extender Mismatch - ${path.basename(downloadUrl)}`,
-                      message: 'Looks like you selected the wrong file. Please try again.',
+                      title: t('Script Extender Mismatch - {{file}}',
+                        { replace: { file: path.basename(downloadUrl) } }),
+                      message: t('Looks like you selected the wrong file. Please try again.'),
                     });
                   }
                 })
@@ -514,7 +538,7 @@ function main(context: types.IExtensionContext) {
     (game: types.IGame) =>
       getGamePath(game.id, context.api),
     (instructions) => testScriptExtender(instructions, context.api),
-    { mergeMods: true });
+    { mergeMods: true, name: 'Script Extender' });
   context.once(() => {
     context.api.events.on('gamemode-activated',
       async (gameId: string) => onGameModeActivated(context.api, gameId));
