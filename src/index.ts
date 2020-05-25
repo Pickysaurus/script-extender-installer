@@ -530,7 +530,7 @@ function main(context: types.IExtensionContext) {
     (game: types.IGame) =>
       getGamePath(game.id, context.api),
     (instructions) => testScriptExtender(instructions, context.api),
-    { mergeMods: true });
+    { mergeMods: true, name: 'Script Extender' });
   context.once(() => {
     context.api.events.on('gamemode-activated',
       async (gameId: string) => onGameModeActivated(context.api, gameId));
