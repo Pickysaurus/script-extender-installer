@@ -8,14 +8,26 @@ import { actions, fs, log, selectors, types, util } from 'vortex-api';
 
 import * as xseAttributes from './xse-attributes.json';
 
-const supportData = {
+interface IGameSupport {
+  name: string;
+  scriptExtExe: string;
+  website: string;
+  regex: RegExp;
+  attributes: (ver: string) => types.IInstruction[];
+  latestVersion: string;
+  ignore?: boolean;
+}
+
+const supportData: { [gameId: string]: IGameSupport } = {
   skyrim: {
     name: 'Skyrim Script Extender (SKSE)',
     scriptExtExe: 'skse_loader.exe',
     website: 'https://skse.silverlock.org/',
     regex: /(beta\/skse_[0-9]+_[0-9]+_[0-9]+.7z)/i,
     attributes: (xseVersion) => {
-      return [{ type: 'attribute', key: 'version', value: xseVersion }, ...xseAttributes.skyrim];
+      return [
+        { type: 'attribute', key: 'version', value: xseVersion } as any,
+        ...xseAttributes.skyrim];
     },
     latestVersion: '1.7.3',
   },
@@ -25,7 +37,9 @@ const supportData = {
     website: 'https://skse.silverlock.org/',
     regex: /(beta\/skse64_[0-9]+_[0-9]+_[0-9]+.7z)/i,
     attributes: (xseVersion) => {
-      return [{ type: 'attribute', key: 'version', value: xseVersion }, ...xseAttributes.skyrimse];
+      return [
+        { type: 'attribute', key: 'version', value: xseVersion } as any,
+        ...xseAttributes.skyrimse];
     },
     latestVersion: '2.0.17',
   },
@@ -35,7 +49,9 @@ const supportData = {
     website: 'https://skse.silverlock.org/',
     regex: /(beta\/sksevr_[0-9]+_[0-9]+_[0-9]+.7z)/i,
     attributes: (xseVersion) => {
-      return [{ type: 'attribute', key: 'version', value: xseVersion }, ...xseAttributes.skyrimvr];
+      return [
+        { type: 'attribute', key: 'version', value: xseVersion } as any,
+        ...xseAttributes.skyrimvr];
     },
     latestVersion: '2.0.11',
   },
@@ -45,7 +61,9 @@ const supportData = {
     website: 'https://f4se.silverlock.org/',
     regex: /(beta\/f4se_[0-9]+_[0-9]+_[0-9]+.7z)/i,
     attributes: (xseVersion) => {
-      return [{ type: 'attribute', key: 'version', value: xseVersion }, ...xseAttributes.fallout4];
+      return [
+        { type: 'attribute', key: 'version', value: xseVersion } as any,
+        ...xseAttributes.fallout4];
     },
     latestVersion: '0.6.21',
   },
@@ -56,7 +74,7 @@ const supportData = {
     regex: /(beta\/f4sevr_[0-9]+_[0-9]+_[0-9]+.7z)/i,
     attributes: (xseVersion) => {
       return [
-        { type: 'attribute', key: 'version', value: xseVersion },
+        { type: 'attribute', key: 'version', value: xseVersion } as any,
         ...xseAttributes.fallout4vr,
       ];
     },
@@ -68,7 +86,9 @@ const supportData = {
     website: 'http://nvse.silverlock.org/',
     regex: /(download\/nvse_[0-9]+_[0-9]+_[a-zA-Z0-9]+.7z)/i,
     attributes: (xseVersion) => {
-      return [{ type: 'attribute', key: 'version', value: xseVersion }, ...xseAttributes.falloutnv];
+      return [
+        { type: 'attribute', key: 'version', value: xseVersion } as any,
+        ...xseAttributes.falloutnv];
     },
     latestVersion: '5.1.4',
   },
@@ -76,9 +96,11 @@ const supportData = {
     name: 'Fallout Script Extender (FOSE)',
     scriptExtExe: 'fose_loader.exe',
     website: 'http://fose.silverlock.org/',
-    regex: /(download\/fose_[0-9]+_[0-9]+_[a-zA-Z0-9]+.7z)/i,
+    regex: /(download\/fose_v[0-9]+_[0-9]+_[a-zA-Z0-9]+.7z)/i,
     attributes: (xseVersion) => {
-      return [{ type: 'attribute', key: 'version', value: xseVersion }, ...xseAttributes.fallout3];
+      return [
+        { type: 'attribute', key: 'version', value: xseVersion } as any,
+        ...xseAttributes.fallout3];
     },
     latestVersion: '1.2.2',
   },
@@ -88,7 +110,9 @@ const supportData = {
     website: 'http://obse.silverlock.org/',
     regex: /(download\/obse_[0-9]+.zip)/i,
     attributes: (xseVersion) => {
-      return [{ type: 'attribute', key: 'version', value: xseVersion }, ...xseAttributes.oblivion];
+      return [
+        { type: 'attribute', key: 'version', value: xseVersion } as any,
+        ...xseAttributes.oblivion];
     },
     latestVersion: '0021',
   },
@@ -175,7 +199,7 @@ async function onCheckModVersion(api, gameId, mods) {
   });
 }
 
-async function onGameModeActivated(api, gameId: string) {
+async function onGameModeActivated(api: types.IExtensionApi, gameId: string) {
   // Clear script extender notifications from other games.
   clearNotifications(api);
 
@@ -186,7 +210,7 @@ async function onGameModeActivated(api, gameId: string) {
   const gameSupport = supportData[gameId];
 
   // User has snoozed this notification, this clears each time Vortex is restarted (non-persistent)
-  if (gameSupport.ignore && gameSupport.ignore === true) {
+  if (gameSupport.ignore === true) {
     return false;
   }
 
@@ -214,13 +238,15 @@ async function onGameModeActivated(api, gameId: string) {
 
   // If we've already stored the latest version this session and it's out of date.
   if (gameSupport.latestVersion && semver.gt(gameSupport.latestVersion, scriptExtenderVersion)) {
-    return notifyNewVersion(gameSupport.latestVersion, scriptExtenderVersion, supportData, api);
+    return notifyNewVersion(gameSupport.latestVersion, scriptExtenderVersion, gameSupport, api);
   } else if (!gameSupport.latestVersion) {
     return checkForUpdate(api, gameSupport, scriptExtenderVersion);
   }
 }
 
-function checkForUpdate(api, gameSupport, scriptExtenderVersion: string): Promise<string> {
+function checkForUpdate(api: types.IExtensionApi,
+                        gameSupport: IGameSupport,
+                        scriptExtenderVersion: string): Promise<string> {
   return new Promise((resolve, reject) => {
     http.get(gameSupport.website, {protocol : 'http:'}, (res: IncomingMessage) => {
       const { statusCode } = res;
@@ -286,7 +312,7 @@ function checkForUpdate(api, gameSupport, scriptExtenderVersion: string): Promis
 // could add url : string[], for the download URL
 function notifyNewVersion(latest: string,
                           current: string,
-                          gameSupportData,
+                          gameSupportData: IGameSupport,
                           api: types.IExtensionApi) {
   // Raise a notification.
   const gameId = selectors.activeGameId(api.store.getState());
@@ -296,8 +322,13 @@ function notifyNewVersion(latest: string,
     type: 'info',
     id: `scriptextender-update-${gameId}`,
     allowSuppress: true,
-    title: t('Update for {{name}}', { replace: { name: gameSupportData.name } }),
-    message: t('Latest: {{latest}}, Installed: {{current}}', { replace: { latest, current } }),
+    title: 'Update for {{name}}',
+    message: 'Latest: {{latest}}, Installed: {{current}}',
+    replace: {
+      name: gameSupportData.name,
+      latest,
+      current,
+    },
     actions: [
       { title : 'More', action: (dismiss: () => void) => {
           api.showDialog('info', 'Script Extender Update', {
@@ -343,8 +374,20 @@ function notifyNewVersion(latest: string,
                       api.events.emit('start-download',
                                       [downloadUrl],
                                       dlInfo,
-                                      gameSupportData.name,
+                                      undefined,
                                       (error, id) => {
+                          if (error !== null) {
+                            if ((error.name === 'AlreadyDownloaded')
+                                && (error.downloadId !== undefined)) {
+                              // if the file was already downloaded then that's fine, just install
+                              // that file
+                              id = error.downloadId;
+                            } else {
+                              api.showErrorNotification('Download failed',
+                                error, { allowReport: false });
+                              return;
+                            }
+                          }
                           api.events.emit('start-install-download', id, true, (err, modId) => {
                             if (err) {
                               return log('error', 'Error installing download', err);
@@ -380,7 +423,7 @@ function notifyNewVersion(latest: string,
   });
 }
 
-function notifyNotInstalled(gameSupportData, api: types.IExtensionApi) {
+function notifyNotInstalled(gameSupportData: IGameSupport, api: types.IExtensionApi) {
   const gameId = selectors.activeGameId(api.store.getState());
   const t = api.translate;
 
@@ -529,11 +572,12 @@ async function installScriptExtender(files: string[], destinationPath: string, g
 
   // Build install instructions and attach attributes to it.
   const instructions: types.IInstruction[] = filtered.map(file => {
-    return {
+    const copy: types.IInstruction = {
       type: 'copy' as 'copy',
       source: file,
       destination: path.join(file.substr(idx)),
     };
+    return copy;
   }).concat(attributes);
 
   return Promise.resolve({ instructions });
@@ -548,7 +592,7 @@ function main(context: types.IExtensionContext) {
     'script-extender-installer', 10, toBlue(testSupported), toBlue(installScriptExtender));
   context.registerModType(
     'script-extender', 10,
-    (game) => supportData[game],
+    (game) => supportData[game] !== undefined,
     (game: types.IGame) =>
       getGamePath(game.id, context.api),
     (instructions) => testScriptExtender(instructions, context.api),
