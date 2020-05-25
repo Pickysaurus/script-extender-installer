@@ -424,13 +424,27 @@ function notifyNotInstalled(gameSupportData, api: types.IExtensionApi) {
                       game: gameId,
                       name: gameSupportData.name,
                     };
-                    api.events.emit('start-download', [downloadUrl], dlInfo, gameSupportData.name,
+                    api.events.emit('start-download', [downloadUrl], dlInfo, undefined,
                       (error, id) => {
-                        api.events.emit('start-install-download', id, true, (err, modId) => {
-                          if (err) {
-                            return log('error', 'Error installing download', err);
+                        if (error !== null) {
+                          if ((error.name === 'AlreadyDownloaded')
+                              && (error.downloadId !== undefined)) {
+                            // if the file was already downloaded then that's fine, just install
+                            // that file
+                            id = error.downloadId;
+                          } else {
+                            api.showErrorNotification('Download failed',
+                              error, { allowReport: false });
+                            return;
                           }
-                          dismiss();
+                        }
+                        api.events.emit('start-install-download', id, true, (err, modId) => {
+                          if (err !== null) {
+                            api.showErrorNotification('Failed to install script extender',
+                              err, { allowReport: false });
+                          } else {
+                            dismiss();
+                          }
                         });
                       }, 'never');
                   } else {
