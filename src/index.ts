@@ -336,9 +336,13 @@ function notifyNewVersion(latest: string,
 
                     const correctFile = downloadUrl.match(gameSupportData.regex);
                     if (!!correctFile) {
+                      const dlInfo = {
+                        game: gameId,
+                        name: gameSupportData.name,
+                      };
                       api.events.emit('start-download',
                                       [downloadUrl],
-                                      {},
+                                      dlInfo,
                                       gameSupportData.name,
                                       (error, id) => {
                           api.events.emit('start-install-download', id, true, (err, modId) => {
@@ -416,7 +420,11 @@ function notifyNotInstalled(gameSupportData, api: types.IExtensionApi) {
                   const downloadUrl = result[0].indexOf('<') ? result[0].split('<')[0] : result[0];
                   const correctFile = downloadUrl.match(gameSupportData.regex);
                   if (!!correctFile) {
-                    api.events.emit('start-download', [downloadUrl], {}, gameSupportData.name,
+                    const dlInfo = {
+                      game: gameId,
+                      name: gameSupportData.name,
+                    };
+                    api.events.emit('start-download', [downloadUrl], dlInfo, gameSupportData.name,
                       (error, id) => {
                         api.events.emit('start-install-download', id, true, (err, modId) => {
                           if (err) {
