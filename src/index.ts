@@ -361,6 +361,10 @@ function notifyNewVersion(latest: string,
                   // Open the script extender site in Vortex.
                   api.emitAndAwait('browse-for-download', gameSupportData.website, instructions)
                   .then((result: string[]) => {
+                    if (!result || !result.length) {
+                      // If the user clicks outside the window without downloading.
+                      return Promise.reject(new util.UserCanceled());
+                    }
                     const downloadUrl = result[0].indexOf('<')
                       ? result[0].split('<')[0]
                       : result[0];
@@ -390,7 +394,8 @@ function notifyNewVersion(latest: string,
                           }
                           api.events.emit('start-install-download', id, true, (err, modId) => {
                             if (err) {
-                              return log('error', 'Error installing download', err);
+                              log('error', 'Error installing download', err);
+                              return Promise.reject();
                             }
                             dismiss();
                           });
@@ -405,7 +410,12 @@ function notifyNewVersion(latest: string,
                       });
                     }
                   })
-                  .catch(err => log('error', 'Error browsing for download', err));
+                  .catch(err => {
+                    if (err instanceof util.UserCanceled) {
+                      return log('info', 'User clicked outside the browser without downloading. Script extender update cancelled.');
+                    }
+                    return log('error', 'Error browsing for download', err);
+                  });
                 },
               },
               {
@@ -460,6 +470,10 @@ function notifyNotInstalled(gameSupportData: IGameSupport, api: types.IExtension
                   });
                 api.emitAndAwait('browse-for-download', gameSupportData.website, instructions)
                 .then((result: string[]) => {
+                  // If the user clicks outside the browser and closes it prematurely.
+                  if (!result || !result.length) {
+                    return Promise.reject(new util.UserCanceled());
+                  }
                   const downloadUrl = result[0].indexOf('<') ? result[0].split('<')[0] : result[0];
                   const correctFile = downloadUrl.match(gameSupportData.regex);
                   if (!!correctFile) {
@@ -500,7 +514,12 @@ function notifyNotInstalled(gameSupportData: IGameSupport, api: types.IExtension
                     });
                   }
                 })
-                .catch(err => log('error', 'Error browsing for download', err));
+                .catch(err => {
+                  if (err instanceof util.UserCanceled) {
+                    return log('info', 'User clicked outside the browser without downloading. Script extender download cancelled.');
+                  }
+                  return log('error', 'Error browsing for download', err);
+                });
               },
             },
             {
