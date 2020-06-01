@@ -395,7 +395,7 @@ function notifyNewVersion(latest: string,
                           api.events.emit('start-install-download', id, true, (err, modId) => {
                             if (err) {
                               log('error', 'Error installing download', err);
-                              return Promise.reject();
+                              return Promise.reject(err);
                             }
                             dismiss();
                           });
