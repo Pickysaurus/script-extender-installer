@@ -599,6 +599,10 @@ async function installScriptExtender(files: string[], destinationPath: string, g
     return copy;
   }).concat(attributes);
 
+  // TODO: remove this once we had a chance to fix the modtypes conflict issue
+  //  and have re-instated the script-extender modtype.
+  instructions.splice(0, 0, { type: 'setmodtype', value: 'dinput' });
+
   return Promise.resolve({ instructions });
 }
 
@@ -609,13 +613,17 @@ function toBlue<T>(func: (...args: any[]) => Promise<T>): (...args: any[]) => Bl
 function main(context: types.IExtensionContext) {
   context.registerInstaller(
     'script-extender-installer', 10, toBlue(testSupported), toBlue(installScriptExtender));
-  context.registerModType(
-    'script-extender', 10,
-    (game) => supportData[game] !== undefined,
-    (game: types.IGame) =>
-      getGamePath(game.id, context.api),
-    (instructions) => testScriptExtender(instructions, context.api),
-    { mergeMods: true, name: 'Script Extender' });
+
+  // Commenting the modtype out as Vortex currently is not able to detect conflicts between
+  //  modtypes and we've confirmed that this can cause unexpected behaviour
+  //  as seen in https://github.com/Nexus-Mods/Vortex/issues/6307.
+  // context.registerModType(
+  //   'script-extender', 10,
+  //   (game) => supportData[game] !== undefined,
+  //   (game: types.IGame) =>
+  //     getGamePath(game.id, context.api),
+  //   (instructions) => testScriptExtender(instructions, context.api),
+  //   { mergeMods: true, name: 'Script Extender' });
   context.once(() => {
     context.api.events.on('gamemode-activated',
       async (gameId: string) => onGameModeActivated(context.api, gameId));
