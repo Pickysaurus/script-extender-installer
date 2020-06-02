@@ -601,7 +601,7 @@ async function installScriptExtender(files: string[], destinationPath: string, g
 
   // TODO: remove this once we had a chance to fix the modtypes conflict issue
   //  and have re-instated the script-extender modtype.
-  instructions.splice(0, 0, { type: 'setmodtype', value: 'dinput' });
+  instructions.push({ type: 'setmodtype', value: 'dinput' });
 
   return Promise.resolve({ instructions });
 }
