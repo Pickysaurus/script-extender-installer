@@ -165,7 +165,7 @@ export async function getLatestReleases(gameSupport: IGameSupport) {
             && (version !== null)
             && semver.gte(version, gameSupport.latestVersion));
         })
-        .sort((lhs, rhs) => semver.compare(lhs.tag_name, rhs.tag_name));
+        .sort((lhs, rhs) => semver.compare(rhs.tag_name, lhs.tag_name));
 
       return Promise.resolve(current);
     });
@@ -180,7 +180,16 @@ export async function checkForUpdates(api: types.IExtensionApi,
   return getLatestReleases(gameSupport)
     .then(async currentRelease => {
       const mostRecentVersion = currentRelease[0].tag_name;
-      const downloadLink = currentRelease[0].assets[0].browser_download_url;
+      const archives = currentRelease[0].assets.filter(asset => {
+        const beta = `beta/${asset.name}`;
+        const down = `download/${asset.name}`;
+        return beta.match(gameSupport.regex) || down.match(gameSupport.regex);
+      });
+
+      const downloadLink = archives[0]?.browser_download_url;
+      if (downloadLink === undefined) {
+        return Promise.reject(new util.DataInvalid('Failed to resolve browser download url'));
+      }
       const download = async () => {
         const redirectionURL = await new Promise((resolve, reject) => {
           https.request(getRequestOptions(downloadLink), res => {
@@ -247,7 +256,17 @@ export async function downloadScriptExtender(api: types.IExtensionApi,
   return getLatestReleases(gameSupport)
     .then(async currentRelease => {
       mostRecentVersion = currentRelease[0].tag_name;
-      const downloadLink = currentRelease[0].assets[0].browser_download_url;
+      const archives = currentRelease[0].assets.filter(asset => {
+        const beta = `beta/${asset.name}`;
+        const down = `download/${asset.name}`;
+        return beta.match(gameSupport.regex) || down.match(gameSupport.regex);
+      });
+
+      const downloadLink = archives[0]?.browser_download_url;
+      if (downloadLink === undefined) {
+        return Promise.reject(new util.DataInvalid('Failed to resolve browser download url'));
+      }
+
       const download = async () => {
         const redirectionURL = await new Promise((resolve, reject) => {
           https.request(getRequestOptions(downloadLink), res => {
