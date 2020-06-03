@@ -10,7 +10,7 @@ import { IGameSupport } from './types';
 
 import { IncomingHttpHeaders, IncomingMessage } from 'http';
 
-function query(baseUrl, request): Promise<{}> {
+function query(baseUrl: string, request: string): Promise<any> {
   return new Promise((resolve, reject) => {
     const getRequest = getRequestOptions(`${baseUrl}/${request}`);
     https.get(getRequest, (res: IncomingMessage) => {
@@ -160,9 +160,6 @@ export async function getLatestReleases(gameSupport: IGameSupport) {
           const tagName = util.getSafe(rel, ['tag_name'], undefined);
           const isPreRelease = util.getSafe(rel, ['prerelease'], false);
           const version = semver.valid(tagName);
-          if (isPreRelease || (version === null)) {
-            return false;
-          }
 
           return (!isPreRelease
             && (version !== null)
@@ -232,6 +229,9 @@ export async function checkForUpdates(api: types.IExtensionApi,
       if (err instanceof util.UserCanceled || err instanceof util.ProcessCanceled) {
         return Promise.resolve(currentVersion);
       }
+
+      api.showErrorNotification('Unable to update script extender', err);
+      return Promise.resolve(currentVersion);
     });
 }
 
