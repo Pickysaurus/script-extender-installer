@@ -6,17 +6,10 @@ import * as path from 'path';
 import * as semver from 'semver';
 import { actions, fs, log, selectors, types, util } from 'vortex-api';
 
+import * as gitHubDownloader from './githubDownloader';
+import { IGameSupport } from './types';
 import * as xseAttributes from './xse-attributes.json';
-
-interface IGameSupport {
-  name: string;
-  scriptExtExe: string;
-  website: string;
-  regex: RegExp;
-  attributes: (ver: string) => types.IInstruction[];
-  latestVersion: string;
-  ignore?: boolean;
-}
+import { IGame } from 'vortex-api/lib/types/api';
 
 const supportData: { [gameId: string]: IGameSupport } = {
   skyrim: {
@@ -83,14 +76,15 @@ const supportData: { [gameId: string]: IGameSupport } = {
   falloutnv: {
     name: 'New Vegas Script Extender (NVSE)',
     scriptExtExe: 'nvse_loader.exe',
-    website: 'http://nvse.silverlock.org/',
+    website: 'https://github.com/xNVSE/NVSE/',
     regex: /(download\/nvse_[0-9]+_[0-9]+_[a-zA-Z0-9]+.7z)/i,
     attributes: (xseVersion) => {
       return [
         { type: 'attribute', key: 'version', value: xseVersion } as any,
         ...xseAttributes.falloutnv];
     },
-    latestVersion: '5.1.4',
+    latestVersion: '5.1.6',
+    gitHubAPIUrl: 'https://api.github.com/repos/xNVSE/NVSE',
   },
   fallout3: {
     name: 'Fallout Script Extender (FOSE)',
@@ -165,6 +159,9 @@ async function onCheckModVersion(api, gameId, mods) {
   // Exit if this isn't a supported game.
   if (!supportData[gameId]) { return; }
   const gameSupport = supportData[gameId];
+  if (gameSupport.ignore === true) {
+    return;
+  }
   const gamePath = getGamePath(gameId, api);
 
   // Get the version of the installed script extender
@@ -182,7 +179,9 @@ async function onCheckModVersion(api, gameId, mods) {
     modArray.filter(mod => mod.attributes.scriptExtender && profile.modState[mod.id].enabled);
 
   // Check for update.
-  const latestVersion: string = await checkForUpdate(api, gameSupport, scriptExtenderVersion);
+  const latestVersion: string = (!!gameSupport?.gitHubAPIUrl)
+    ? await gitHubDownloader.checkForUpdates(api, gameSupport, scriptExtenderVersion)
+    : await checkForUpdate(api, gameSupport, scriptExtenderVersion);
 
   // If we fail to get the latest version or it's an exact match for our
   // installed script extender, return.
@@ -233,7 +232,9 @@ async function onGameModeActivated(api: types.IExtensionApi, gameId: string) {
 
   // If the script extender isn't installed, return. Perhaps we should recommend installing it?
   if (!scriptExtenderVersion) {
-    return notifyNotInstalled(gameSupport, api);
+    return (!!gameSupport?.gitHubAPIUrl)
+      ? gitHubDownloader.downloadScriptExtender(api, gameSupport)
+      : notifyNotInstalled(gameSupport, api);
   }
 
   // If we've already stored the latest version this session and it's out of date.
@@ -632,6 +633,12 @@ function main(context: types.IExtensionContext) {
   });
 
   return true;
+}
+
+export function ignoreNotifications(gameSupport: IGameSupport) {
+  // Allows the github downloader to set the ignore flag.
+  const match = Object.keys(supportData).find(key => supportData[key].name === gameSupport.name);
+  supportData[match].ignore = true;
 }
 
 export default main;

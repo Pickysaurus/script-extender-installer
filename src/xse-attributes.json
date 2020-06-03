@@ -273,7 +273,7 @@
         {
             "type" : "attribute",
             "key" : "homepage",
-            "value" : "http://nvse.silverlock.org/"
+            "value" : "https://github.com/xNVSE/NVSE"
         },
         {
             "type" : "attribute",
