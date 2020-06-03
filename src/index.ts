@@ -9,7 +9,6 @@ import { actions, fs, log, selectors, types, util } from 'vortex-api';
 import * as gitHubDownloader from './githubDownloader';
 import { IGameSupport } from './types';
 import * as xseAttributes from './xse-attributes.json';
-import { IGame } from 'vortex-api/lib/types/api';
 
 const supportData: { [gameId: string]: IGameSupport } = {
   skyrim: {
@@ -89,7 +88,7 @@ const supportData: { [gameId: string]: IGameSupport } = {
   fallout3: {
     name: 'Fallout Script Extender (FOSE)',
     scriptExtExe: 'fose_loader.exe',
-    website: 'http://fose.silverlock.org/',
+    website: 'https://fose.silverlock.org/',
     regex: /(download\/fose_v[0-9]+_[0-9]+_[a-zA-Z0-9]+.7z)/i,
     attributes: (xseVersion) => {
       return [
@@ -101,7 +100,7 @@ const supportData: { [gameId: string]: IGameSupport } = {
   oblivion: {
     name: 'Oblivion Script Extender (OBSE)',
     scriptExtExe: 'obse_loader.exe',
-    website: 'http://obse.silverlock.org/',
+    website: 'https://obse.silverlock.org/',
     regex: /(download\/obse_[0-9]+.zip)/i,
     attributes: (xseVersion) => {
       return [
