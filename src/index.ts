@@ -317,14 +317,104 @@ function checkForUpdate(api: types.IExtensionApi,
   });
 }
 
+function dialogActions(api: types.IExtensionApi,
+                       gameSupportData: IGameSupport,
+                       dismiss: () => void): types.IDialogAction[] {
+  const t = api.translate;
+  return [
+    {
+      label: 'Ignore',
+      action: () => {
+        // Ignore this update until Vortex is restarted.
+        gameSupportData.ignore = true;
+        dismiss();
+      },
+    },
+    {
+      label: 'Open in Vortex',
+      action: () => {
+        const instructions =
+          t('To install {{name}}, download the 7z archive for {{latest}}.',
+            { replace:
+              { name: gameSupportData.name, latest: gameSupportData.latestVersion },
+            });
+        // Open the script extender site in Vortex.
+        api.emitAndAwait('browse-for-download', gameSupportData.website, instructions)
+        .then((result: string[]) => {
+          if (!result || !result.length) {
+            // If the user clicks outside the window without downloading.
+            return Promise.reject(new util.UserCanceled());
+          }
+          const downloadUrl = result[0].indexOf('<')
+            ? result[0].split('<')[0]
+            : result[0];
+
+          const correctFile = downloadUrl.match(gameSupportData.regex);
+          if (!!correctFile) {
+            const dlInfo = {
+              game: gameSupportData.gameId,
+              name: gameSupportData.name,
+            };
+            api.events.emit('start-download',
+                            [downloadUrl],
+                            dlInfo,
+                            undefined,
+                            (error, id) => {
+                if (error !== null) {
+                  if ((error.name === 'AlreadyDownloaded')
+                      && (error.downloadId !== undefined)) {
+                    // if the file was already downloaded then that's fine, just install
+                    // that file
+                    id = error.downloadId;
+                  } else {
+                    api.showErrorNotification('Download failed',
+                      error, { allowReport: false });
+                    return;
+                  }
+                }
+                api.events.emit('start-install-download', id, true, (err, modId) => {
+                  if (err) {
+                    log('error', 'Error installing download', err);
+                    return Promise.reject(err);
+                  }
+                  dismiss();
+                });
+              }, 'never');
+          } else {
+            api.sendNotification({
+              type: 'warning',
+              id: 'scriptextender-wrong',
+              title: t('Script Extender Mismatch - {{file}}',
+                { replace: { file: path.basename(downloadUrl) } }),
+              message: t('Looks like you selected the wrong file. Please try again.'),
+            });
+          }
+        })
+        .catch(err => {
+          if (err instanceof util.UserCanceled) {
+            return log('info', 'User clicked outside the browser without downloading. Script extender update cancelled.');
+          }
+          return log('error', 'Error browsing for download', err);
+        });
+      },
+    },
+    {
+      label: 'Open in browser',
+      action: () => {
+        // Open the script extender site in Vortex.
+        util.opn(gameSupportData.website).catch(err => undefined);
+        dismiss();
+      },
+    },
+  ];
+}
+
 // could add url : string[], for the download URL
 function notifyNewVersion(latest: string,
                           current: string,
                           gameSupportData: IGameSupport,
                           api: types.IExtensionApi) {
   // Raise a notification.
-  const t = api.translate;
-
   api.sendNotification({
     type: 'info',
     id: `scriptextender-update-${gameSupportData.gameId}`,
@@ -348,95 +438,9 @@ function notifyNewVersion(latest: string,
               website: gameSupportData.website,
               current,
             },
-          }, [
-              {
-                label: 'Ignore',
-                action: () => {
-                  // Ignore this update until Vortex is restarted.
-                  gameSupportData.ignore = true;
-                  dismiss();
-                },
-              },
-              {
-                label: 'Open in Vortex',
-                action: () => {
-                  const instructions =
-                    t('To install {{name}}, download the 7z archive for {{latest}}.',
-                      { replace:
-                        { name: gameSupportData.name, latest: gameSupportData.latestVersion },
-                      });
-                  // Open the script extender site in Vortex.
-                  api.emitAndAwait('browse-for-download', gameSupportData.website, instructions)
-                  .then((result: string[]) => {
-                    if (!result || !result.length) {
-                      // If the user clicks outside the window without downloading.
-                      return Promise.reject(new util.UserCanceled());
-                    }
-                    const downloadUrl = result[0].indexOf('<')
-                      ? result[0].split('<')[0]
-                      : result[0];
-
-                    const correctFile = downloadUrl.match(gameSupportData.regex);
-                    if (!!correctFile) {
-                      const dlInfo = {
-                        game: gameSupportData.gameId,
-                        name: gameSupportData.name,
-                      };
-                      api.events.emit('start-download',
-                                      [downloadUrl],
-                                      dlInfo,
-                                      undefined,
-                                      (error, id) => {
-                          if (error !== null) {
-                            if ((error.name === 'AlreadyDownloaded')
-                                && (error.downloadId !== undefined)) {
-                              // if the file was already downloaded then that's fine, just install
-                              // that file
-                              id = error.downloadId;
-                            } else {
-                              api.showErrorNotification('Download failed',
-                                error, { allowReport: false });
-                              return;
-                            }
-                          }
-                          api.events.emit('start-install-download', id, true, (err, modId) => {
-                            if (err) {
-                              log('error', 'Error installing download', err);
-                              return Promise.reject(err);
-                            }
-                            dismiss();
-                          });
-                        }, 'never');
-                    } else {
-                      api.sendNotification({
-                        type: 'warning',
-                        id: 'scriptextender-wrong',
-                        title: t('Script Extender Mismatch - {{file}}',
-                          { replace: { file: path.basename(downloadUrl) } }),
-                        message: t('Looks like you selected the wrong file. Please try again.'),
-                      });
-                    }
-                  })
-                  .catch(err => {
-                    if (err instanceof util.UserCanceled) {
-                      return log('info', 'User clicked outside the browser without downloading. Script extender update cancelled.');
-                    }
-                    return log('error', 'Error browsing for download', err);
-                  });
-                },
-              },
-              {
-                label: 'Open in browser',
-                action: () => {
-                  // Open the script extender site in Vortex.
-                  util.opn(gameSupportData.website).catch(err => undefined);
-                  dismiss();
-                },
-              },
-            ]);
-
+          }, dialogActions(api, gameSupportData, dismiss));
         },
-      } ],
+      }],
   });
 }
 
@@ -458,84 +462,7 @@ function notifyNotInstalled(gameSupportData: IGameSupport, api: types.IExtension
             + '\n\nFor the best modding experience, we recommend installing the script extender by visiting {{website}}, Vortex can open the download page using the options below.'
             + '\n\nIf you ignore this notice, Vortex will not remind you again until it is restarted.',
             parameters: { name: gameSupportData.name, website: gameSupportData.website },
-          }, [
-            {
-              label: 'Remind me next time',
-              action: () => {
-                gameSupportData.ignore = true;
-                dismiss();
-              },
-            },
-            {
-              label: 'Open in Vortex',
-              action: () => {
-                const instructions =
-                t('To install {{name}}, download the 7z archive for {{latest}}.',
-                  { replace:
-                    { name: gameSupportData.name, latest: gameSupportData.latestVersion },
-                  });
-                api.emitAndAwait('browse-for-download', gameSupportData.website, instructions)
-                .then((result: string[]) => {
-                  // If the user clicks outside the browser and closes it prematurely.
-                  if (!result || !result.length) {
-                    return Promise.reject(new util.UserCanceled());
-                  }
-                  const downloadUrl = result[0].indexOf('<') ? result[0].split('<')[0] : result[0];
-                  const correctFile = downloadUrl.match(gameSupportData.regex);
-                  if (!!correctFile) {
-                    const dlInfo = {
-                      game: gameSupportData.gameId,
-                      name: gameSupportData.name,
-                    };
-                    api.events.emit('start-download', [downloadUrl], dlInfo, undefined,
-                      (error, id) => {
-                        if (error !== null) {
-                          if ((error.name === 'AlreadyDownloaded')
-                              && (error.downloadId !== undefined)) {
-                            // if the file was already downloaded then that's fine, just install
-                            // that file
-                            id = error.downloadId;
-                          } else {
-                            api.showErrorNotification('Download failed',
-                              error, { allowReport: false });
-                            return;
-                          }
-                        }
-                        api.events.emit('start-install-download', id, true, (err, modId) => {
-                          if (err !== null) {
-                            api.showErrorNotification('Failed to install script extender',
-                              err, { allowReport: false });
-                          } else {
-                            dismiss();
-                          }
-                        });
-                      }, 'never');
-                  } else {
-                    api.sendNotification({
-                      type: 'warning',
-                      id: 'scriptextender-wrong',
-                      title: t('Script Extender Mismatch - {{file}}',
-                        { replace: { file: path.basename(downloadUrl) } }),
-                      message: t('Looks like you selected the wrong file. Please try again.'),
-                    });
-                  }
-                })
-                .catch(err => {
-                  if (err instanceof util.UserCanceled) {
-                    return log('info', 'User clicked outside the browser without downloading. Script extender download cancelled.');
-                  }
-                  return log('error', 'Error browsing for download', err);
-                });
-              },
-            },
-            {
-              label: 'Open in browser',
-              action: () => {
-                util.opn(gameSupportData.website).catch(err => undefined);
-                dismiss();
-              },
-            },
-          ]);
+          }, dialogActions(api, gameSupportData, dismiss));
         },
       },
     ],
@@ -642,7 +569,7 @@ function main(context: types.IExtensionContext) {
 
 export function ignoreNotifications(gameSupport: IGameSupport) {
   // Allows the github downloader to set the ignore flag.
-  const match = Object.keys(supportData).find(key => supportData[key].name === gameSupport.name);
+  const match = Object.keys(supportData).find(key => key === gameSupport.gameId);
   supportData[match].ignore = true;
 }
 

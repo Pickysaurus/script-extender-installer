@@ -73,7 +73,7 @@ async function downloadConsent(api: types.IExtensionApi,
               parameters: { name: gameSupport.name },
             }, [
               {
-                label: 'Remind me next time',
+                label: 'Ignore',
                 action: () => {
                   ignoreNotifications(gameSupport);
                   return reject(new util.UserCanceled());
