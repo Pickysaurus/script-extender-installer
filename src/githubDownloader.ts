@@ -189,60 +189,66 @@ export async function getLatestReleases(gameSupport: IGameSupport) {
   }
 }
 
+async function startDownload(api: types.IExtensionApi, gameSupport: IGameSupport,
+                             downloadLink: string) {
+  // tslint:disable-next-line: no-shadowed-variable - why is this even required ?
+  const redirectionURL = await new Promise((resolve, reject) => {
+    https.request(getRequestOptions(downloadLink), res => {
+      return resolve(res.headers['location']);
+    })
+      .on('error', err => reject(err))
+      .end();
+  });
+  const dlInfo = {
+    game: gameSupport.gameId,
+    name: gameSupport.name,
+  };
+  api.events.emit('start-download', [redirectionURL], dlInfo, undefined,
+    (error, id) => {
+      if (error !== null) {
+        if ((error.name === 'AlreadyDownloaded')
+            && (error.downloadId !== undefined)) {
+          id = error.downloadId;
+        } else {
+          api.showErrorNotification('Download failed',
+            error, { allowReport: false });
+          return Promise.resolve();
+        }
+      }
+      api.events.emit('start-install-download', id, true, (err, modId) => {
+        if (err !== null) {
+          api.showErrorNotification('Failed to install script extender',
+            err, { allowReport: false });
+        }
+
+        return Promise.resolve();
+      });
+    }, 'ask');
+}
+
+async function resolveDownloadLink(currentReleases: any[], gameSupport: IGameSupport) {
+  const archives = currentReleases[0].assets.filter(asset =>
+    asset.name.match(gameSupport.regex));
+
+  const downloadLink = archives[0]?.browser_download_url;
+  return (downloadLink === undefined)
+    ? Promise.reject(new util.DataInvalid('Failed to resolve browser download url'))
+    : Promise.resolve(downloadLink);
+}
+
 export async function checkForUpdates(api: types.IExtensionApi,
                                       gameSupport: IGameSupport,
                                       currentVersion: string): Promise<string> {
-  const state = api.store.getState();
-  const gameId = selectors.activeGameId(state);
   return getLatestReleases(gameSupport)
-    .then(async currentRelease => {
-      const mostRecentVersion = currentRelease[0].tag_name;
-      const archives = currentRelease[0].assets.filter(asset =>
-        asset.name.match(gameSupport.regex));
-
-      const downloadLink = archives[0]?.browser_download_url;
-      if (downloadLink === undefined) {
-        return Promise.reject(new util.DataInvalid('Failed to resolve browser download url'));
-      }
-      const download = async () => {
-        const redirectionURL = await new Promise((resolve, reject) => {
-          https.request(getRequestOptions(downloadLink), res => {
-            return resolve(res.headers['location']);
-          })
-            .on('error', err => reject(err))
-            .end();
-        });
-        const dlInfo = {
-          game: gameId,
-          name: gameSupport.name,
-        };
-        api.events.emit('start-download', [redirectionURL], dlInfo, undefined,
-          (error, id) => {
-            if (error !== null) {
-              if ((error.name === 'AlreadyDownloaded')
-                  && (error.downloadId !== undefined)) {
-                id = error.downloadId;
-              } else {
-                api.showErrorNotification('Download failed',
-                  error, { allowReport: false });
-                return;
-              }
-            }
-            api.events.emit('start-install-download', id, true, (err, modId) => {
-              if (err !== null) {
-                api.showErrorNotification('Failed to install script extender',
-                  err, { allowReport: false });
-              }
-            });
-          }, 'never');
-      };
-
+    .then(async currentReleases => {
+      const mostRecentVersion = currentReleases[0].tag_name;
+      const downloadLink = await resolveDownloadLink(currentReleases, gameSupport);
       if (semver.valid(mostRecentVersion) === null) {
         return Promise.resolve(currentVersion);
       } else {
         if (semver.gt(mostRecentVersion, currentVersion)) {
           return notifyUpdate(api, gameSupport, mostRecentVersion, currentVersion)
-            .then(() => download())
+            .then(() => startDownload(api, gameSupport, downloadLink))
             .then(() => Promise.resolve(mostRecentVersion));
         } else {
           return Promise.resolve(currentVersion);
@@ -266,53 +272,11 @@ export async function downloadScriptExtender(api: types.IExtensionApi,
     return Promise.reject(new util.ArgumentInvalid('Game entry invalid or missing gitHubUrl'));
   }
 
-  let mostRecentVersion;
   return getLatestReleases(gameSupport)
-    .then(async currentRelease => {
-      mostRecentVersion = currentRelease[0].tag_name;
-      const archives = currentRelease[0].assets.filter(asset =>
-        asset.name.match(gameSupport.regex));
-
-      const downloadLink = archives[0]?.browser_download_url;
-      if (downloadLink === undefined) {
-        return Promise.reject(new util.DataInvalid('Failed to resolve browser download url'));
-      }
-
-      const download = async () => {
-        const redirectionURL = await new Promise((resolve, reject) => {
-          https.request(getRequestOptions(downloadLink), res => {
-            return resolve(res.headers['location']);
-          })
-            .on('error', err => reject(err))
-            .end();
-        });
-        const dlInfo = {
-          game: gameId,
-          name: gameSupport.name,
-        };
-        api.events.emit('start-download', [redirectionURL], dlInfo, undefined,
-          (error, id) => {
-            if (error !== null) {
-              if ((error.name === 'AlreadyDownloaded')
-                  && (error.downloadId !== undefined)) {
-                id = error.downloadId;
-              } else {
-                api.showErrorNotification('Download failed',
-                  error, { allowReport: false });
-                return;
-              }
-            }
-            api.events.emit('start-install-download', id, true, (err, modId) => {
-              if (err !== null) {
-                api.showErrorNotification('Failed to install script extender',
-                  err, { allowReport: false });
-              }
-            });
-          }, 'never');
-      };
-
+    .then(async currentReleases => {
+      const downloadLink = await resolveDownloadLink(currentReleases, gameSupport);
       return downloadConsent(api, gameSupport, gameId)
-        .then(() => download());
+        .then(() => startDownload(api, gameSupport, downloadLink));
     })
     .catch(err => {
       if (err instanceof util.UserCanceled || err instanceof util.ProcessCanceled) {

@@ -2,6 +2,7 @@ import { types } from 'vortex-api';
 
 export interface IGameSupport {
   name: string;
+  gameId: string;
   scriptExtExe: string;
   website: string;
   regex: RegExp;

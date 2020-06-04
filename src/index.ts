@@ -13,6 +13,7 @@ import * as xseAttributes from './xse-attributes.json';
 const supportData: { [gameId: string]: IGameSupport } = {
   skyrim: {
     name: 'Skyrim Script Extender (SKSE)',
+    gameId: 'skyrim',
     scriptExtExe: 'skse_loader.exe',
     website: 'https://skse.silverlock.org/',
     regex: /(beta\/skse_[0-9]+_[0-9]+_[0-9]+.7z)/i,
@@ -25,6 +26,7 @@ const supportData: { [gameId: string]: IGameSupport } = {
   },
   skyrimse: {
     name: 'Skyrim Script Extender 64 (SKSE64)',
+    gameId: 'skyrimse',
     scriptExtExe: 'skse64_loader.exe',
     website: 'https://skse.silverlock.org/',
     regex: /(beta\/skse64_[0-9]+_[0-9]+_[0-9]+.7z)/i,
@@ -37,6 +39,7 @@ const supportData: { [gameId: string]: IGameSupport } = {
   },
   skyrimvr: {
     name: 'Skyrim Script Extender VR (SKSEVR)',
+    gameId: 'skyrimvr',
     scriptExtExe: 'sksevr_loader.exe',
     website: 'https://skse.silverlock.org/',
     regex: /(beta\/sksevr_[0-9]+_[0-9]+_[0-9]+.7z)/i,
@@ -49,6 +52,7 @@ const supportData: { [gameId: string]: IGameSupport } = {
   },
   fallout4: {
     name: 'Fallout 4 Script Extender (F4SE)',
+    gameId: 'fallout4',
     scriptExtExe: 'f4se_loader.exe',
     website: 'https://f4se.silverlock.org/',
     regex: /(beta\/f4se_[0-9]+_[0-9]+_[0-9]+.7z)/i,
@@ -61,6 +65,7 @@ const supportData: { [gameId: string]: IGameSupport } = {
   },
   fallout4vr: {
     name: 'Fallout 4 Script Extender VR (F4SE)',
+    gameId: 'fallout4vr',
     scriptExtExe: 'f4vser_loader.exe',
     website: 'https://f4se.silverlock.org/',
     regex: /(beta\/f4sevr_[0-9]+_[0-9]+_[0-9]+.7z)/i,
@@ -74,6 +79,7 @@ const supportData: { [gameId: string]: IGameSupport } = {
   },
   falloutnv: {
     name: 'New Vegas Script Extender (NVSE)',
+    gameId: 'falloutnv',
     scriptExtExe: 'nvse_loader.exe',
     website: 'https://github.com/xNVSE/NVSE/',
     regex: /(nvse_[0-9]+_[0-9]+_[a-zA-Z0-9]+.7z)/i,
@@ -87,6 +93,7 @@ const supportData: { [gameId: string]: IGameSupport } = {
   },
   fallout3: {
     name: 'Fallout Script Extender (FOSE)',
+    gameId: 'fallout3',
     scriptExtExe: 'fose_loader.exe',
     website: 'https://fose.silverlock.org/',
     regex: /(download\/fose_v[0-9]+_[0-9]+_[a-zA-Z0-9]+.7z)/i,
@@ -99,6 +106,7 @@ const supportData: { [gameId: string]: IGameSupport } = {
   },
   oblivion: {
     name: 'Oblivion Script Extender (OBSE)',
+    gameId: 'oblivion',
     scriptExtExe: 'obse_loader.exe',
     website: 'https://obse.silverlock.org/',
     regex: /(download\/obse_[0-9]+.zip)/i,
@@ -315,12 +323,11 @@ function notifyNewVersion(latest: string,
                           gameSupportData: IGameSupport,
                           api: types.IExtensionApi) {
   // Raise a notification.
-  const gameId = selectors.activeGameId(api.store.getState());
   const t = api.translate;
 
   api.sendNotification({
     type: 'info',
-    id: `scriptextender-update-${gameId}`,
+    id: `scriptextender-update-${gameSupportData.gameId}`,
     allowSuppress: true,
     title: 'Update for {{name}}',
     message: 'Latest: {{latest}}, Installed: {{current}}',
@@ -372,7 +379,7 @@ function notifyNewVersion(latest: string,
                     const correctFile = downloadUrl.match(gameSupportData.regex);
                     if (!!correctFile) {
                       const dlInfo = {
-                        game: gameId,
+                        game: gameSupportData.gameId,
                         name: gameSupportData.name,
                       };
                       api.events.emit('start-download',
@@ -434,12 +441,11 @@ function notifyNewVersion(latest: string,
 }
 
 function notifyNotInstalled(gameSupportData: IGameSupport, api: types.IExtensionApi) {
-  const gameId = selectors.activeGameId(api.store.getState());
   const t = api.translate;
 
   api.sendNotification({
     type: 'info',
-    id: `scriptextender-missing-${gameId}`,
+    id: `scriptextender-missing-${gameSupportData.gameId}`,
     allowSuppress: true,
     message: '{{name}} not installed',
     replace: { name: gameSupportData.name },
@@ -478,7 +484,7 @@ function notifyNotInstalled(gameSupportData: IGameSupport, api: types.IExtension
                   const correctFile = downloadUrl.match(gameSupportData.regex);
                   if (!!correctFile) {
                     const dlInfo = {
-                      game: gameId,
+                      game: gameSupportData.gameId,
                       name: gameSupportData.name,
                     };
                     api.events.emit('start-download', [downloadUrl], dlInfo, undefined,
