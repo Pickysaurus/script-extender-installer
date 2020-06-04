@@ -76,7 +76,7 @@ const supportData: { [gameId: string]: IGameSupport } = {
     name: 'New Vegas Script Extender (NVSE)',
     scriptExtExe: 'nvse_loader.exe',
     website: 'https://github.com/xNVSE/NVSE/',
-    regex: /(download\/nvse_[0-9]+_[0-9]+_[a-zA-Z0-9]+.7z)/i,
+    regex: /(nvse_[0-9]+_[0-9]+_[a-zA-Z0-9]+.7z)/i,
     attributes: (xseVersion) => {
       return [
         { type: 'attribute', key: 'version', value: xseVersion } as any,
@@ -440,9 +440,9 @@ function notifyNotInstalled(gameSupportData: IGameSupport, api: types.IExtension
   api.sendNotification({
     type: 'info',
     id: `scriptextender-missing-${gameId}`,
-    title: 'Script Extender not installed',
     allowSuppress: true,
-    message: gameSupportData.name,
+    message: '{{name}} not installed',
+    replace: { name: gameSupportData.name },
     actions: [
       {
         title: 'More',

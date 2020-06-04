@@ -58,14 +58,15 @@ async function downloadConsent(api: types.IExtensionApi,
     api.sendNotification({
       id: `scriptextender-missing-${gameId}`,
       type: 'info',
-      allowSuppress: true,
-      title: 'Script Extender not installed',
+      noDismiss: true,
+      title: '{{name}} not installed',
       message: gameSupport.name,
+      replace: { name: gameSupport.name },
       actions: [
         {
           title: 'More',
           action: (dismiss) => {
-            api.showDialog('info', `${gameSupport.name} not found`, {
+            api.showDialog('info', '{{name}} not found', {
               text: 'Vortex could not detect {{name}}. This means it is either not installed or installed incorrectly.'
               + '\n\nFor the best modding experience, we recommend downloading and installing the script extender.'
               + '\n\nIf you ignore this notice, Vortex will not remind you again until it is restarted.',
@@ -87,7 +88,15 @@ async function downloadConsent(api: types.IExtensionApi,
               },
             ]);
           },
-        }],
+        },
+        {
+          title: 'Dismiss',
+          action: (dismiss) => {
+            resolve();
+            dismiss();
+          },
+        },
+      ],
     });
   });
 }
@@ -100,7 +109,7 @@ async function notifyUpdate(api: types.IExtensionApi, gameSupport: IGameSupport,
     api.sendNotification({
       type: 'info',
       id: `scriptextender-update-${gameId}`,
-      allowSuppress: true,
+      noDismiss: true,
       title: 'Update for {{name}}',
       message: 'Latest: {{latest}}, Installed: {{current}}',
       replace: {
@@ -110,7 +119,7 @@ async function notifyUpdate(api: types.IExtensionApi, gameSupport: IGameSupport,
       },
       actions: [
         { title : 'More', action: (dismiss: () => void) => {
-            api.showDialog('info', 'Script Extender Update', {
+            api.showDialog('info', '{{name}} Update', {
               text: 'Vortex has detected a newer version of {{name}} ({{latest}}) available to download from {{website}}. You currently have version {{current}} installed.'
               + '\nVortex can download and attempt to install the new update for you.'
               + '\n\nIf you ignore this message, Vortex will not remind you again until you restart it.',
@@ -139,7 +148,15 @@ async function notifyUpdate(api: types.IExtensionApi, gameSupport: IGameSupport,
                 },
               ]);
           },
-        } ],
+        },
+        {
+          title: 'Dismiss',
+          action: (dismiss) => {
+            resolve();
+            dismiss();
+          },
+        },
+      ],
     });
   });
 }
@@ -180,11 +197,8 @@ export async function checkForUpdates(api: types.IExtensionApi,
   return getLatestReleases(gameSupport)
     .then(async currentRelease => {
       const mostRecentVersion = currentRelease[0].tag_name;
-      const archives = currentRelease[0].assets.filter(asset => {
-        const beta = `beta/${asset.name}`;
-        const down = `download/${asset.name}`;
-        return beta.match(gameSupport.regex) || down.match(gameSupport.regex);
-      });
+      const archives = currentRelease[0].assets.filter(asset =>
+        asset.name.match(gameSupport.regex));
 
       const downloadLink = archives[0]?.browser_download_url;
       if (downloadLink === undefined) {
@@ -256,11 +270,8 @@ export async function downloadScriptExtender(api: types.IExtensionApi,
   return getLatestReleases(gameSupport)
     .then(async currentRelease => {
       mostRecentVersion = currentRelease[0].tag_name;
-      const archives = currentRelease[0].assets.filter(asset => {
-        const beta = `beta/${asset.name}`;
-        const down = `download/${asset.name}`;
-        return beta.match(gameSupport.regex) || down.match(gameSupport.regex);
-      });
+      const archives = currentRelease[0].assets.filter(asset =>
+        asset.name.match(gameSupport.regex));
 
       const downloadLink = archives[0]?.browser_download_url;
       if (downloadLink === undefined) {
