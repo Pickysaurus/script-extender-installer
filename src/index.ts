@@ -345,21 +345,15 @@ function dialogActions(api: types.IExtensionApi,
             // If the user clicks outside the window without downloading.
             return Promise.reject(new util.UserCanceled());
           }
-          const downloadUrl = result[0].indexOf('<')
-            ? result[0].split('<')[0]
-            : result[0];
-
+          const downloadUrl = result[0].indexOf('<') ? result[0].split('<')[0] : result[0];
           const correctFile = downloadUrl.match(gameSupportData.regex);
           if (!!correctFile) {
             const dlInfo = {
               game: gameSupportData.gameId,
               name: gameSupportData.name,
             };
-            api.events.emit('start-download',
-                            [downloadUrl],
-                            dlInfo,
-                            undefined,
-                            (error, id) => {
+            api.events.emit('start-download', [downloadUrl], dlInfo, undefined,
+              (error, id) => {
                 if (error !== null) {
                   if ((error.name === 'AlreadyDownloaded')
                       && (error.downloadId !== undefined)) {
@@ -367,17 +361,20 @@ function dialogActions(api: types.IExtensionApi,
                     // that file
                     id = error.downloadId;
                   } else {
+                    // Possibly redundant error notification ?
                     api.showErrorNotification('Download failed',
                       error, { allowReport: false });
-                    return;
+                    dismiss();
+                    return Promise.resolve();
                   }
                 }
                 api.events.emit('start-install-download', id, true, (err, modId) => {
                   if (err) {
+                    // Error notification gets reported by the event listener
                     log('error', 'Error installing download', err);
-                    return Promise.reject(err);
                   }
                   dismiss();
+                  return Promise.resolve();
                 });
               }, 'never');
           } else {
