@@ -184,7 +184,7 @@ async function onCheckModVersion(api, gameId, mods) {
   const profile = selectors.activeProfile(api.store.getState());
   // Filter out any non-script extender mods or those which are disabled (old versions).
   const scriptExtenders =
-    modArray.filter(mod => mod.attributes.scriptExtender && profile.modState[mod.id].enabled);
+    modArray.filter(mod => (!!mod?.attributes?.scriptExtender) && profile.modState[mod.id].enabled);
 
   // Check for update.
   const latestVersion: string = (!!gameSupport?.gitHubAPIUrl)
@@ -229,7 +229,7 @@ async function onGameModeActivated(api: types.IExtensionApi, gameId: string) {
   const mods = util.getSafe(api.store.getState(), ['persistent', 'mods', gameId], undefined);
   const modArray = mods ? Object.keys(mods).map(k => mods[k]) : undefined;
   const installedScriptExtenders =
-    modArray ? modArray.filter(mod => mod.attributes.scriptExtender).length : 0;
+    modArray ? modArray.filter(mod => !!mod?.attributes?.scriptExtender).length : 0;
   if (installedScriptExtenders) {
     return;
   }
