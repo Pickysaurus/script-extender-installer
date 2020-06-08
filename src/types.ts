@@ -8,6 +8,10 @@ export interface IGameSupport {
   regex: RegExp;
   attributes: (ver: string) => types.IInstruction[];
   latestVersion: string;
+  // latest version display should only be used if
+  //  the script extender version on the download page
+  //  differs from the actual semantic version of the SE
+  latestVersionDisplay?: string;
   ignore?: boolean;
   gitHubAPIUrl?: string;
 }

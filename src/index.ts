@@ -115,7 +115,8 @@ const supportData: { [gameId: string]: IGameSupport } = {
         { type: 'attribute', key: 'version', value: xseVersion } as any,
         ...xseAttributes.oblivion];
     },
-    latestVersion: '0021',
+    latestVersion: '0.21.4',
+    latestVersionDisplay: '0021',
   },
 };
 
@@ -336,7 +337,11 @@ function dialogActions(api: types.IExtensionApi,
         const instructions =
           t('To install {{name}}, download the 7z archive for {{latest}}.',
             { replace:
-              { name: gameSupportData.name, latest: gameSupportData.latestVersion },
+              {
+                name: gameSupportData.name,
+                latest: (!!gameSupportData?.latestVersionDisplay)
+                  ? gameSupportData.latestVersionDisplay : gameSupportData.latestVersion,
+              },
             });
         // Open the script extender site in Vortex.
         api.emitAndAwait('browse-for-download', gameSupportData.website, instructions)
