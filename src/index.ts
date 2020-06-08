@@ -184,7 +184,8 @@ async function onCheckModVersion(api, gameId, mods) {
   const profile = selectors.activeProfile(api.store.getState());
   // Filter out any non-script extender mods or those which are disabled (old versions).
   const scriptExtenders =
-    modArray.filter(mod => (!!mod?.attributes?.scriptExtender) && profile.modState[mod.id].enabled);
+    modArray.filter(mod => (!!mod?.attributes?.scriptExtender)
+      && !!profile.modState[mod.id]?.enabled);
 
   // Check for update.
   const latestVersion: string = (!!gameSupport?.gitHubAPIUrl)
