@@ -1,6 +1,6 @@
 {
   "name": "script-extender-installer",
-  "version": "1.1.4",
+  "version": "1.1.5",
   "description": "Install script extenders for Gamebyro games with Vortex",
   "main": "./out/index.js",
   "repository": "",

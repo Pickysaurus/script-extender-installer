@@ -66,7 +66,7 @@ const supportData: { [gameId: string]: IGameSupport } = {
   fallout4vr: {
     name: 'Fallout 4 Script Extender VR (F4SE)',
     gameId: 'fallout4vr',
-    scriptExtExe: 'f4vser_loader.exe',
+    scriptExtExe: 'f4sevr_loader.exe',
     website: 'https://f4se.silverlock.org/',
     regex: /(beta\/f4sevr_[0-9]+_[0-9]+_[0-9]+.7z)/i,
     attributes: (xseVersion) => {
