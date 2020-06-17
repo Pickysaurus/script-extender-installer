@@ -484,7 +484,7 @@ function clearNotifications(api, preserveMissing?: boolean) {
 function testSupported(files: string[], gameId: string): Promise<types.ISupportedResult> {
   return new Promise((resolve, reject) => {
     if (!supportData[gameId]) {
-      resolve({ supported: false, requiredFiles: [] });
+      return resolve({ supported: false, requiredFiles: [] });
     } // Not a script extender friendly game.
     const scriptExtender =
       files.find((file) => path.basename(file) === supportData[gameId].scriptExtExe);
