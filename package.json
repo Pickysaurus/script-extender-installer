@@ -20,7 +20,7 @@
     "7z-bin": "Nexus-Mods/7z-bin",
     "@types/node": "^12.0.10",
     "bluebird": "^3.5.5",
-    "electron": "4.2.4",
+    "electron": "7.2.4",
     "exe-version": "Nexus-Mods/node-exe-version",
     "i18next": "^17.0.4",
     "react": "^16.8.6",
