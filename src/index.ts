@@ -228,6 +228,18 @@ async function onGameModeActivated(api: types.IExtensionApi, gameId: string) {
   // Get our game path.
   const activegame: types.IGame = util.getGame(gameId);
   const gamePath = getGamePath(activegame.id, api);
+  if (gamePath === undefined) {
+    // So the user switched to this gameMode yet we have
+    //  no evidence of the game ever being discovered...
+    //  makes complete sense!
+    //  https://github.com/Nexus-Mods/Vortex/issues/6999
+    //  Given that getGamePath _can_ return undefined, we just
+    //  return here and avoid testing for script extenders.
+    //  pretty sure this issue will pop up again in a different location
+    //  unless the user of 6999 gets back to us.
+    log('error', 'user switched to an undiscovered gamemode', gameId);
+    return false;
+  }
 
   // Check for disabled (but installed) script extenders.
   const mods = util.getSafe(api.store.getState(), ['persistent', 'mods', gameId], undefined);
