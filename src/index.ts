@@ -338,6 +338,8 @@ function dialogActions(api: types.IExtensionApi,
                        gameSupportData: IGameSupport,
                        dismiss: () => void): types.IDialogAction[] {
   const t = api.translate;
+  const state = api.store.getState();
+  const activeProfile: types.IProfile = selectors.activeProfile(state);
   return [
     {
       label: 'Ignore',
@@ -393,6 +395,31 @@ function dialogActions(api: types.IExtensionApi,
                   if (err) {
                     // Error notification gets reported by the event listener
                     log('error', 'Error installing download', err);
+                  } else {
+                    // It's safe to assume that if the user chose to download and install
+                    //  the new script extender, he also expects it to be enabled and deployed
+                    //  straight away.
+                    if (activeProfile?.id !== undefined) {
+                      // Disable existing SE mods
+                      const mods = util.getSafe(api.store.getState(),
+                        ['persistent', 'mods', activeProfile.gameId], {});
+
+                      const modArray = Object.keys(mods).map(k => mods[k]);
+                      const scriptExtenders = modArray.filter(mod => {
+                        const isScriptExtender = util.getSafe(mod,
+                          ['attributes', 'scriptExtender'], false);
+
+                        const isEnabled = util.getSafe(activeProfile,
+                          ['modState', mod.id, 'enabled'], false);
+
+                        return (isScriptExtender && isEnabled);
+                      });
+                      scriptExtenders.forEach(se =>
+                        api.store.dispatch(actions.setModEnabled(activeProfile.id, se.id, false)));
+                      api.store.dispatch(actions.setModEnabled(activeProfile.id, modId, true));
+                      api.store.dispatch(
+                        actions.setDeploymentNecessary(activeProfile.gameId, true));
+                    }
                   }
                   dismiss();
                   return Promise.resolve();
