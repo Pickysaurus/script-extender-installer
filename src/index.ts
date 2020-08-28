@@ -35,7 +35,7 @@ const supportData: { [gameId: string]: IGameSupport } = {
         { type: 'attribute', key: 'version', value: xseVersion } as any,
         ...xseAttributes.skyrimse];
     },
-    latestVersion: '2.0.17',
+    latestVersion: '2.0.19',
   },
   skyrimvr: {
     name: 'Skyrim Script Extender VR (SKSEVR)',
@@ -353,7 +353,7 @@ function dialogActions(api: types.IExtensionApi,
       label: 'Open in Vortex',
       action: () => {
         const instructions =
-          t('To install {{name}}, download the 7z archive for {{latest}}.',
+          t('To install {{name}}, download the 7z archive for {{latest}} (or higher).',
             { replace:
               {
                 name: gameSupportData.name,
