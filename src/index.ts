@@ -13,6 +13,7 @@ import * as xseAttributes from './xse-attributes.json';
 const supportData: { [gameId: string]: IGameSupport } = {
   skyrim: {
     name: 'Skyrim Script Extender (SKSE)',
+    gameName: 'Skyrim',
     gameId: 'skyrim',
     scriptExtExe: 'skse_loader.exe',
     website: 'https://skse.silverlock.org/',
@@ -22,10 +23,10 @@ const supportData: { [gameId: string]: IGameSupport } = {
         { type: 'attribute', key: 'version', value: xseVersion } as any,
         ...xseAttributes.skyrim];
     },
-    latestVersion: '1.7.3',
   },
   skyrimse: {
     name: 'Skyrim Script Extender 64 (SKSE64)',
+    gameName: 'Skyrim SE',
     gameId: 'skyrimse',
     scriptExtExe: 'skse64_loader.exe',
     website: 'https://skse.silverlock.org/',
@@ -35,10 +36,10 @@ const supportData: { [gameId: string]: IGameSupport } = {
         { type: 'attribute', key: 'version', value: xseVersion } as any,
         ...xseAttributes.skyrimse];
     },
-    latestVersion: '2.0.19',
   },
   skyrimvr: {
     name: 'Skyrim Script Extender VR (SKSEVR)',
+    gameName: 'Skyrim VR',
     gameId: 'skyrimvr',
     scriptExtExe: 'sksevr_loader.exe',
     website: 'https://skse.silverlock.org/',
@@ -48,10 +49,10 @@ const supportData: { [gameId: string]: IGameSupport } = {
         { type: 'attribute', key: 'version', value: xseVersion } as any,
         ...xseAttributes.skyrimvr];
     },
-    latestVersion: '2.0.11',
   },
   fallout4: {
     name: 'Fallout 4 Script Extender (F4SE)',
+    gameName: 'Fallout 4',
     gameId: 'fallout4',
     scriptExtExe: 'f4se_loader.exe',
     website: 'https://f4se.silverlock.org/',
@@ -61,10 +62,10 @@ const supportData: { [gameId: string]: IGameSupport } = {
         { type: 'attribute', key: 'version', value: xseVersion } as any,
         ...xseAttributes.fallout4];
     },
-    latestVersion: '0.6.21',
   },
   fallout4vr: {
     name: 'Fallout 4 Script Extender VR (F4SE)',
+    gameName: 'Fallout 4 VR',
     gameId: 'fallout4vr',
     scriptExtExe: 'f4sevr_loader.exe',
     website: 'https://f4se.silverlock.org/',
@@ -75,10 +76,10 @@ const supportData: { [gameId: string]: IGameSupport } = {
         ...xseAttributes.fallout4vr,
       ];
     },
-    latestVersion: '0.6.20',
   },
   falloutnv: {
     name: 'New Vegas Script Extender (NVSE)',
+    gameName: 'Fallout NV',
     gameId: 'falloutnv',
     scriptExtExe: 'nvse_loader.exe',
     website: 'https://github.com/xNVSE/NVSE/',
@@ -88,11 +89,11 @@ const supportData: { [gameId: string]: IGameSupport } = {
         { type: 'attribute', key: 'version', value: xseVersion } as any,
         ...xseAttributes.falloutnv];
     },
-    latestVersion: '5.1.6',
     gitHubAPIUrl: 'https://api.github.com/repos/xNVSE/NVSE',
   },
   fallout3: {
     name: 'Fallout Script Extender (FOSE)',
+    gameName: 'Fallout 3',
     gameId: 'fallout3',
     scriptExtExe: 'fose_loader.exe',
     website: 'https://fose.silverlock.org/',
@@ -102,10 +103,10 @@ const supportData: { [gameId: string]: IGameSupport } = {
         { type: 'attribute', key: 'version', value: xseVersion } as any,
         ...xseAttributes.fallout3];
     },
-    latestVersion: '1.2.2',
   },
   oblivion: {
     name: 'Oblivion Script Extender (OBSE)',
+    gameName: 'Oblivion',
     gameId: 'oblivion',
     scriptExtExe: 'obse_loader.exe',
     website: 'https://obse.silverlock.org/',
@@ -115,8 +116,6 @@ const supportData: { [gameId: string]: IGameSupport } = {
         { type: 'attribute', key: 'version', value: xseVersion } as any,
         ...xseAttributes.oblivion];
     },
-    latestVersion: '0.21.4',
-    latestVersionDisplay: '0021',
   },
 };
 
@@ -260,13 +259,6 @@ async function onGameModeActivated(api: types.IExtensionApi, gameId: string) {
       ? gitHubDownloader.downloadScriptExtender(api, gameSupport)
       : notifyNotInstalled(gameSupport, api);
   }
-
-  // If we've already stored the latest version this session and it's out of date.
-  if (gameSupport.latestVersion && semver.gt(gameSupport.latestVersion, scriptExtenderVersion)) {
-    return notifyNewVersion(gameSupport.latestVersion, scriptExtenderVersion, gameSupport, api);
-  } else if (!gameSupport.latestVersion) {
-    return checkForUpdate(api, gameSupport, scriptExtenderVersion);
-  }
 }
 
 function checkForUpdate(api: types.IExtensionApi,
@@ -275,7 +267,7 @@ function checkForUpdate(api: types.IExtensionApi,
   return new Promise((resolve, reject) => {
     http.get(gameSupport.website, {protocol : 'http:'}, (res: IncomingMessage) => {
       const { statusCode } = res;
-      if (statusCode !== 200) { return resolve(gameSupport.latestVersion); }
+      if (statusCode !== 200) { return resolve(scriptExtenderVersion); }
       res.setEncoding('utf8');
       let rawData = '';
       res.on('data', (chunk) => rawData += chunk);
@@ -309,12 +301,9 @@ function checkForUpdate(api: types.IExtensionApi,
 
         // If it's STILL not valid, exit here.
         if (!semver.valid(latestVersion)) {
-          return resolve(gameSupport.latestVersion);
+          return resolve(scriptExtenderVersion);
         }
         log('debug', 'Latest Version script extender', [gameSupport.name, latestVersion]);
-
-        // Save this value so we don't have to check again this session.
-        gameSupport.latestVersion = latestVersion;
 
         // If the version from the website is greater than the installed version, inform the user.
         if (semver.gt(latestVersion, scriptExtenderVersion)) {
@@ -324,12 +313,12 @@ function checkForUpdate(api: types.IExtensionApi,
         return resolve(latestVersion);
         } catch (err) {
           log('error', 'Error geting script extender data', err);
-          return resolve(gameSupport.latestVersion);
+          return resolve(scriptExtenderVersion);
         }
       });
     }).on('error', (err: Error) => {
       log('error', 'Error getting script extender data', err);
-      return resolve(gameSupport.latestVersion);
+      return resolve(scriptExtenderVersion);
     });
   });
 }
@@ -353,12 +342,11 @@ function dialogActions(api: types.IExtensionApi,
       label: 'Open in Vortex',
       action: () => {
         const instructions =
-          t('To install {{name}}, download the 7z archive for {{latest}} (or higher).',
+          t('To install {{name}}, download the latest 7z archive for {{gameName}}.',
             { replace:
               {
                 name: gameSupportData.name,
-                latest: (!!gameSupportData?.latestVersionDisplay)
-                  ? gameSupportData.latestVersionDisplay : gameSupportData.latestVersion,
+                gameName: (gameSupportData.gameName),
               },
             });
         // Open the script extender site in Vortex.

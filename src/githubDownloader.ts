@@ -163,7 +163,7 @@ async function notifyUpdate(api: types.IExtensionApi, gameSupport: IGameSupport,
   });
 }
 
-export async function getLatestReleases(gameSupport: IGameSupport) {
+export async function getLatestReleases(gameSupport: IGameSupport, currentVersion: string) {
   if (!!gameSupport?.gitHubAPIUrl) {
     return query(gameSupport.gitHubAPIUrl, 'releases')
     .then((releases) => {
@@ -182,7 +182,7 @@ export async function getLatestReleases(gameSupport: IGameSupport) {
 
           return (!isPreRelease
             && (version !== null)
-            && semver.gte(version, gameSupport.latestVersion));
+            && ((semver.gte(version, currentVersion)) || (currentVersion === undefined)));
         })
         .sort((lhs, rhs) => semver.compare(rhs.tag_name, lhs.tag_name));
 
@@ -241,7 +241,7 @@ async function resolveDownloadLink(currentReleases: any[], gameSupport: IGameSup
 export async function checkForUpdates(api: types.IExtensionApi,
                                       gameSupport: IGameSupport,
                                       currentVersion: string): Promise<string> {
-  return getLatestReleases(gameSupport)
+  return getLatestReleases(gameSupport, currentVersion)
     .then(async currentReleases => {
       const mostRecentVersion = currentReleases[0].tag_name;
       const downloadLink = await resolveDownloadLink(currentReleases, gameSupport);
@@ -274,7 +274,7 @@ export async function downloadScriptExtender(api: types.IExtensionApi,
     return Promise.reject(new util.ArgumentInvalid('Game entry invalid or missing gitHubUrl'));
   }
 
-  return getLatestReleases(gameSupport)
+  return getLatestReleases(gameSupport, undefined)
     .then(async currentReleases => {
       const downloadLink = await resolveDownloadLink(currentReleases, gameSupport);
       return downloadConsent(api, gameSupport, gameId)
