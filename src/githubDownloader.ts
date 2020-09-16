@@ -182,7 +182,7 @@ export async function getLatestReleases(gameSupport: IGameSupport, currentVersio
 
           return (!isPreRelease
             && (version !== null)
-            && ((semver.gte(version, currentVersion)) || (currentVersion === undefined)));
+            && ((currentVersion === undefined) || (semver.gte(version, currentVersion))));
         })
         .sort((lhs, rhs) => semver.compare(rhs.tag_name, lhs.tag_name));
 
