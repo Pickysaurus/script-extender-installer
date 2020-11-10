@@ -576,9 +576,67 @@ function toBlue<T>(func: (...args: any[]) => Promise<T>): (...args: any[]) => Bl
   return (...args: any[]) => Bluebird.resolve(func(...args));
 }
 
+async function testMisconfiguredPrimaryTool(api: types.IExtensionApi): Promise<types.ITestResult> {
+  const state = api.store.getState();
+  const gameMode = selectors.activeGameId(state);
+  const primaryToolId = util.getSafe(state,
+    ['settings', 'interface', 'primaryTool', gameMode], undefined);
+  if (supportData[gameMode] === undefined || primaryToolId === undefined) {
+    // Not applicable.
+    return Promise.resolve(undefined);
+  }
+
+  const discovery = util.getSafe(state,
+    ['settings', 'gameMode', 'discovered', gameMode], undefined);
+  if (discovery?.path === undefined || discovery?.tools?.[primaryToolId] === undefined) {
+    // No game or no tools.
+    return Promise.resolve(undefined);
+  }
+
+  const installedSEVersion = await getScriptExtenderVersion(
+    path.join(discovery.path, supportData[gameMode].scriptExtExe));
+
+  const t = api.translate;
+  const primaryTool = discovery.tools[primaryToolId];
+  if ((installedSEVersion !== undefined)
+   && (path.basename(primaryTool.path) === (supportData[gameMode].scriptExtExe))
+   && (path.dirname(primaryTool.path) !== discovery.path.replace(/\/$|\\$/, ''))) {
+      return Promise.resolve({
+        description: {
+          short: 'Misconfigured Script Extender Tool',
+          long: t('Your primary tool/starter for this game is a Script Extender, but it appears to be misconfigured. '
+                + 'Vortex should be able to automatically fix this issue for you by re-configuring it to launch using:[br][/br][br][/br]'
+                + '{{valid}}[br][/br][br][/br] instead of:[br][/br][br][/br] {{invalid}}[br][/br][br][/br]'
+                + 'For more information about where/how to install script extenders, please see our wiki article:[br][/br]'
+                + '[url]https://wiki.nexusmods.com/index.php/Tool_Setup:_Script_Extenders[/url]', {
+                  replace: {
+                    invalid: primaryTool.path,
+                    valid: path.join(discovery.path, path.basename(primaryTool.path)),
+                  },
+                }),
+        },
+        automaticFix: () => {
+          api.store.dispatch(actions.addDiscoveredTool(gameMode, primaryTool.id, {
+            ...primaryTool,
+            path: path.join(discovery.path, supportData[gameMode].scriptExtExe),
+            workingDirectory: discovery.path,
+          }, false));
+          api.store.dispatch(actions.setToolVisible(gameMode, primaryTool.id, true));
+          return Promise.resolve();
+        },
+        severity: 'warning',
+      });
+  } else {
+    return Promise.resolve(undefined);
+  }
+}
+
 function main(context: types.IExtensionContext) {
   context.registerInstaller(
     'script-extender-installer', 10, toBlue(testSupported), toBlue(installScriptExtender));
+
+  context.registerTest('misconfigured-script-extender', 'gamemode-activated',
+    () => testMisconfiguredPrimaryTool(context.api));
 
   // Commenting the modtype out as Vortex currently is not able to detect conflicts between
   //  modtypes and we've confirmed that this can cause unexpected behaviour
