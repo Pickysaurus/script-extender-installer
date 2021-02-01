@@ -134,7 +134,7 @@ const getScriptExtenderVersion = (extenderPath: string): Promise<string> => {
     .catch(() => {
       // Return a blank string if the file doesn't exist.
       log('debug', 'Script extender not found:', extenderPath);
-      return resolve();
+      return resolve(undefined);
     });
 
   });
@@ -588,7 +588,7 @@ async function testMisconfiguredPrimaryTool(api: types.IExtensionApi): Promise<t
 
   const discovery = util.getSafe(state,
     ['settings', 'gameMode', 'discovered', gameMode], undefined);
-  if (discovery?.path === undefined || discovery?.tools?.[primaryToolId] === undefined) {
+  if (!discovery?.path || !discovery?.tools?.[primaryToolId]?.path) {
     // No game or no tools.
     return Promise.resolve(undefined);
   }
@@ -597,10 +597,13 @@ async function testMisconfiguredPrimaryTool(api: types.IExtensionApi): Promise<t
     path.join(discovery.path, supportData[gameMode].scriptExtExe));
 
   const t = api.translate;
-  const primaryTool = discovery.tools[primaryToolId];
+  const primaryTool: types.IDiscoveredTool = discovery.tools[primaryToolId];
+  const normalize = (input: string, mod?: (input: string) => string) => (mod !== undefined)
+    ? path.normalize(mod(input.toLowerCase()))
+    : path.normalize(input.toLowerCase());
   if ((installedSEVersion !== undefined)
-   && (path.basename(primaryTool.path) === (supportData[gameMode].scriptExtExe))
-   && (path.dirname(primaryTool.path) !== discovery.path.replace(/\/$|\\$/, ''))) {
+   && (normalize(primaryTool.path, path.basename) === normalize(supportData[gameMode].scriptExtExe))
+   && (normalize(primaryTool.path, path.dirname) !== normalize(discovery.path).replace(/\/$|\\$/, ''))) {
       return Promise.resolve({
         description: {
           short: 'Misconfigured Script Extender Tool',
