@@ -159,10 +159,12 @@ function testScriptExtender(instructions, api: types.IExtensionApi): Promise<boo
   });
 }
 
-function isXboxVersion(gamePath: string): boolean {
+function isXboxVersion(discoveryPath: string): boolean {
   // Check if this is the xbox game pass variant of the game - script extenders
   //  are not supported (yet).
-  return (gamePath.toLowerCase().includes('3275kfvn8vcwc'));
+  const hasPathElement = (element) =>
+    discoveryPath.toLowerCase().includes(element);
+  return ['modifiablewindowsapps', '3275kfvn8vcwc'].find(hasPathElement) !== undefined;
 }
 
 async function onCheckModVersion(api, gameId, mods) {
