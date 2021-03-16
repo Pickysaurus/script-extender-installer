@@ -159,6 +159,12 @@ function testScriptExtender(instructions, api: types.IExtensionApi): Promise<boo
   });
 }
 
+function isXboxVersion(gamePath: string): boolean {
+  // Check if this is the xbox game pass variant of the game - script extenders
+  //  are not supported (yet).
+  return (gamePath.toLowerCase().includes('3275kfvn8vcwc'));
+}
+
 async function onCheckModVersion(api, gameId, mods) {
   // Clear any update notifications.
   clearNotifications(api, true);
@@ -170,6 +176,9 @@ async function onCheckModVersion(api, gameId, mods) {
     return;
   }
   const gamePath = getGamePath(gameId, api);
+  if (gamePath === undefined || isXboxVersion(gamePath)) {
+    return;
+  }
 
   // Get the version of the installed script extender
   const scriptExtenderVersion: string =
@@ -238,6 +247,10 @@ async function onGameModeActivated(api: types.IExtensionApi, gameId: string) {
     //  unless the user of 6999 gets back to us.
     log('error', 'user switched to an undiscovered gamemode', gameId);
     return false;
+  }
+
+  if (isXboxVersion(gamePath)) {
+    return;
   }
 
   // Check for disabled (but installed) script extenders.
@@ -586,10 +599,14 @@ async function testMisconfiguredPrimaryTool(api: types.IExtensionApi): Promise<t
     return Promise.resolve(undefined);
   }
 
-  const discovery = util.getSafe(state,
+  const discovery: types.IDiscoveryResult = util.getSafe(state,
     ['settings', 'gameMode', 'discovered', gameMode], undefined);
   if (!discovery?.path || !discovery?.tools?.[primaryToolId]?.path) {
     // No game or no tools.
+    return Promise.resolve(undefined);
+  }
+
+  if (isXboxVersion(discovery.path)) {
     return Promise.resolve(undefined);
   }
 
