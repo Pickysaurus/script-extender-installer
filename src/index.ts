@@ -442,7 +442,7 @@ function dialogActions(api: types.IExtensionApi,
           if (err instanceof util.UserCanceled) {
             return log('info', 'User clicked outside the browser without downloading. Script extender update cancelled.');
           }
-          return log('error', 'Error browsing for download', err);
+          api.showErrorNotification('Error browsing for download', err);
         });
       },
     },
