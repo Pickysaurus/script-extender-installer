@@ -1,9 +1,11 @@
 import * as Bluebird from 'bluebird';
 import getVersion from 'exe-version';
 import * as http from 'http';
+import * as https from 'https';
 import { IncomingMessage } from 'http';
 import * as path from 'path';
 import * as semver from 'semver';
+import * as url from 'url';
 import { actions, fs, log, selectors, types, util } from 'vortex-api';
 
 import * as gitHubDownloader from './githubDownloader';
@@ -247,7 +249,7 @@ async function onGameModeActivated(api: types.IExtensionApi, gameId: string) {
     //  return here and avoid testing for script extenders.
     //  pretty sure this issue will pop up again in a different location
     //  unless the user of 6999 gets back to us.
-    log('error', 'user switched to an undiscovered gamemode', gameId);
+    log('warn', 'user switched to an undiscovered gamemode', gameId);
     return false;
   }
 
@@ -280,15 +282,17 @@ function checkForUpdate(api: types.IExtensionApi,
                         gameSupport: IGameSupport,
                         scriptExtenderVersion: string): Promise<string> {
   return new Promise((resolve, reject) => {
-    http.get(gameSupport.website, {protocol : 'http:'}, (res: IncomingMessage) => {
+    const parsed = url.parse(gameSupport.website);
+    const lib = parsed.protocol === 'https:' ? https : http;
+    lib.get(parsed, (res: IncomingMessage) => {
       const { statusCode } = res;
       if (statusCode !== 200) { return resolve(scriptExtenderVersion); }
       res.setEncoding('utf8');
       let rawData = '';
       res.on('data', (chunk) => rawData += chunk);
       res.on('end', () => {
-        try {
-          // We just loaded the Script Extender Website website. Find our download link.
+      try {
+        // We just loaded the Script Extender website. Find our download link.
         const urlpath: string = rawData.match(gameSupport.regex)[0];
 
         // Remove the beta tag for the file name.
@@ -327,12 +331,12 @@ function checkForUpdate(api: types.IExtensionApi,
 
         return resolve(latestVersion);
         } catch (err) {
-          log('error', 'Error geting script extender data', err);
+          log('warn', 'Error geting script extender data', err.message);
           return resolve(scriptExtenderVersion);
         }
       });
     }).on('error', (err: Error) => {
-      log('error', 'Error getting script extender data', err);
+      log('warn', 'Error getting script extender data', err.message);
       return resolve(scriptExtenderVersion);
     });
   });
@@ -397,7 +401,7 @@ function dialogActions(api: types.IExtensionApi,
                 api.events.emit('start-install-download', id, true, (err, modId) => {
                   if (err) {
                     // Error notification gets reported by the event listener
-                    log('error', 'Error installing download', err);
+                    log('error', 'Error installing download', err.message);
                   } else {
                     // It's safe to assume that if the user chose to download and install
                     //  the new script extender, he also expects it to be enabled and deployed
@@ -505,7 +509,7 @@ function notifyNotInstalled(gameSupportData: IGameSupport, api: types.IExtension
       {
         title: 'More',
         action: (dismiss) => {
-          api.showDialog('info', `${gameSupportData.name} not found`, {
+          api.showDialog('info', `{{name}} not found`, {
             text: 'Vortex could not detect {{name}}. This means it is either not installed or installed incorrectly.'
             + '\n\nFor the best modding experience, we recommend installing the script extender by visiting {{website}}, Vortex can open the download page using the options below.'
             + '\n\nIf you ignore this notice, Vortex will not remind you again until it is restarted.',
