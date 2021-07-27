@@ -11,3 +11,5 @@ export interface IGameSupport {
   ignore?: boolean;
   gitHubAPIUrl?: string;
 }
+
+export interface IModsDict { [gameId: string]: { [modId: string]: types.IMod }; }

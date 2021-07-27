@@ -6,10 +6,11 @@ import { IncomingMessage } from 'http';
 import * as path from 'path';
 import * as semver from 'semver';
 import * as url from 'url';
+import * as _ from 'lodash';
 import { actions, fs, log, selectors, types, util } from 'vortex-api';
 
 import * as gitHubDownloader from './githubDownloader';
-import { IGameSupport } from './types';
+import { IGameSupport, IModsDict } from './types';
 import * as xseAttributes from './xse-attributes.json';
 
 const supportData: { [gameId: string]: IGameSupport } = {
@@ -167,6 +168,65 @@ function isXboxVersion(discoveryPath: string): boolean {
   const hasPathElement = (element) =>
     discoveryPath.toLowerCase().includes(element);
   return ['modifiablewindowsapps', '3275kfvn8vcwc'].find(hasPathElement) !== undefined;
+}
+
+function onModsStateChange(api: types.IExtensionApi, prev: IModsDict, cur: IModsDict) {
+  const state = api.getState();
+  const activeGameId = selectors.activeGameId(state);
+  const gameSupportData = supportData[activeGameId];
+  if (!gameSupportData) {
+    return;
+  }
+
+  const prevG = prev[activeGameId] ?? {};
+  const curG = cur[activeGameId] ?? {};
+  const allIds =
+    Array.from(new Set([].concat(Object.keys(prev[activeGameId]), Object.keys(cur[activeGameId]))));
+  const collections = allIds.filter(id =>
+    (prevG[id]?.type === 'collection') || (curG[id]?.type === 'collection'));
+
+  for (const id of collections) {
+    if (prevG[id]?.rules === curG[id]?.rules) {
+      continue;
+    }
+
+    const added = _.difference(curG[id]?.rules, prevG[id]?.rules);
+    const scriptExtenders = added.map(rule => {
+      const isInCollection = ['requires', 'recommends'].includes(rule.type);
+      const mod = curG[rule.reference?.['id']];
+      if (!mod) {
+        return undefined;
+      }
+      const isScriptExtender = (mod.attributes?.scriptExtender === true);
+      return (isInCollection && isScriptExtender) ? mod : undefined;
+    }).filter(mod => !!mod);
+
+    if (scriptExtenders.length === 0) {
+      continue;
+    }
+
+    const attributes = util.getSafe(curG[id], ['attributes'], {});
+    const collectionAttribute = attributes['collection'] ?? {};
+    const t = api.translate;
+    const instructions = t('To install {{name}}, download the latest 7z archive for {{gameName}}.',
+      { replace: { name: gameSupportData.name, gameName: (gameSupportData.gameName), },
+    });
+    scriptExtenders.forEach(se => {
+      collectionAttribute['source'] = {
+        ...collectionAttribute['source'],
+        [se.id]: {
+          instructions,
+          type: 'browse',
+          url: gameSupportData.gitHubAPIUrl || gameSupportData.website,
+        },
+      }
+    });
+
+    api.store.dispatch(actions.setModAttributes(activeGameId, id, {
+      ...attributes,
+      collection: collectionAttribute,
+    }));
+  }
 }
 
 async function onCheckModVersion(api, gameId, mods) {
@@ -679,6 +739,8 @@ function main(context: types.IExtensionContext) {
       async (gameId: string) => onGameModeActivated(context.api, gameId));
     context.api.events.on('check-mods-version',
       (gameId: string, mods: types.IMod[]) => onCheckModVersion(context.api, gameId, mods));
+    context.api.onStateChange(['persistent', 'mods'],
+      (prev: IModsDict, cur: IModsDict) => onModsStateChange(context.api, prev, cur));
   });
 
   return true;
