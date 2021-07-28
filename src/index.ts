@@ -185,21 +185,25 @@ function onModsStateChange(api: types.IExtensionApi, prev: IModsDict, cur: IMods
   const collections = allIds.filter(id =>
     (prevG[id]?.type === 'collection') || (curG[id]?.type === 'collection'));
 
+  const stateActions = [];
   for (const id of collections) {
     if (prevG[id]?.rules === curG[id]?.rules) {
       continue;
     }
 
     const added = _.difference(curG[id]?.rules, prevG[id]?.rules);
-    const scriptExtenders = added.map(rule => {
+    const scriptExtenders = added.reduce((accum, rule) => {
       const isInCollection = ['requires', 'recommends'].includes(rule.type);
       const mod = curG[rule.reference?.['id']];
       if (!mod) {
-        return undefined;
+        return accum;
       }
       const isScriptExtender = (mod.attributes?.scriptExtender === true);
-      return (isInCollection && isScriptExtender) ? mod : undefined;
-    }).filter(mod => !!mod);
+      if (isInCollection && isScriptExtender) {
+        accum.push(mod);
+      }
+      return accum;
+    }, []);
 
     if (scriptExtenders.length === 0) {
       continue;
@@ -209,7 +213,7 @@ function onModsStateChange(api: types.IExtensionApi, prev: IModsDict, cur: IMods
     const collectionAttribute = attributes['collection'] ?? {};
     const t = api.translate;
     const instructions = t('To install {{name}}, download the latest 7z archive for {{gameName}}.',
-      { replace: { name: gameSupportData.name, gameName: (gameSupportData.gameName), },
+      { replace: { name: gameSupportData.name, gameName: (gameSupportData.gameName) },
     });
     scriptExtenders.forEach(se => {
       collectionAttribute['source'] = {
@@ -219,13 +223,17 @@ function onModsStateChange(api: types.IExtensionApi, prev: IModsDict, cur: IMods
           type: 'browse',
           url: gameSupportData.gitHubAPIUrl || gameSupportData.website,
         },
-      }
+      };
     });
 
-    api.store.dispatch(actions.setModAttributes(activeGameId, id, {
+    stateActions.push(actions.setModAttributes(activeGameId, id, {
       ...attributes,
       collection: collectionAttribute,
     }));
+  }
+
+  if (stateActions.length > 0) {
+    util.batchDispatch(api.store, stateActions);
   }
 }
 
