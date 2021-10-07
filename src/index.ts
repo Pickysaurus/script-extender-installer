@@ -1,7 +1,7 @@
 import * as Bluebird from 'bluebird';
 import getVersion from 'exe-version';
 import * as http from 'http';
-import * as https from 'https';
+//import * as https from 'https';
 import { IncomingMessage } from 'http';
 import * as path from 'path';
 import * as semver from 'semver';
@@ -19,7 +19,7 @@ const supportData: { [gameId: string]: IGameSupport } = {
     gameName: 'Skyrim',
     gameId: 'skyrim',
     scriptExtExe: 'skse_loader.exe',
-    website: 'https://skse.silverlock.org/',
+    website: 'http://skse.silverlock.org/',
     regex: /(beta\/skse_[0-9]+_[0-9]+_[0-9]+.7z)/i,
     attributes: (xseVersion) => {
       return [
@@ -32,7 +32,7 @@ const supportData: { [gameId: string]: IGameSupport } = {
     gameName: 'Skyrim SE',
     gameId: 'skyrimse',
     scriptExtExe: 'skse64_loader.exe',
-    website: 'https://skse.silverlock.org/',
+    website: 'http://skse.silverlock.org/',
     regex: /(beta\/skse64_[0-9]+_[0-9]+_[0-9]+.7z)/i,
     attributes: (xseVersion) => {
       return [
@@ -45,7 +45,7 @@ const supportData: { [gameId: string]: IGameSupport } = {
     gameName: 'Skyrim VR',
     gameId: 'skyrimvr',
     scriptExtExe: 'sksevr_loader.exe',
-    website: 'https://skse.silverlock.org/',
+    website: 'http://skse.silverlock.org/',
     regex: /(beta\/sksevr_[0-9]+_[0-9]+_[0-9]+.7z)/i,
     attributes: (xseVersion) => {
       return [
@@ -58,7 +58,7 @@ const supportData: { [gameId: string]: IGameSupport } = {
     gameName: 'Fallout 4',
     gameId: 'fallout4',
     scriptExtExe: 'f4se_loader.exe',
-    website: 'https://f4se.silverlock.org/',
+    website: 'http://f4se.silverlock.org/',
     regex: /(beta\/f4se_[0-9]+_[0-9]+_[0-9]+.7z)/i,
     attributes: (xseVersion) => {
       return [
@@ -71,7 +71,7 @@ const supportData: { [gameId: string]: IGameSupport } = {
     gameName: 'Fallout 4 VR',
     gameId: 'fallout4vr',
     scriptExtExe: 'f4sevr_loader.exe',
-    website: 'https://f4se.silverlock.org/',
+    website: 'http://f4se.silverlock.org/',
     regex: /(beta\/f4sevr_[0-9]+_[0-9]+_[0-9]+.7z)/i,
     attributes: (xseVersion) => {
       return [
@@ -99,7 +99,7 @@ const supportData: { [gameId: string]: IGameSupport } = {
     gameName: 'Fallout 3',
     gameId: 'fallout3',
     scriptExtExe: 'fose_loader.exe',
-    website: 'https://fose.silverlock.org/',
+    website: 'http://fose.silverlock.org/',
     regex: /(download\/fose_v[0-9]+_[0-9]+_[a-zA-Z0-9]+.7z)/i,
     attributes: (xseVersion) => {
       return [
@@ -112,7 +112,7 @@ const supportData: { [gameId: string]: IGameSupport } = {
     gameName: 'Oblivion',
     gameId: 'oblivion',
     scriptExtExe: 'obse_loader.exe',
-    website: 'https://obse.silverlock.org/',
+    website: 'http://obse.silverlock.org/',
     regex: /(download\/obse_[0-9]+.zip)/i,
     attributes: (xseVersion) => {
       return [
@@ -351,7 +351,8 @@ function checkForUpdate(api: types.IExtensionApi,
                         scriptExtenderVersion: string): Promise<string> {
   return new Promise((resolve, reject) => {
     const parsed = url.parse(gameSupport.website);
-    const lib = parsed.protocol === 'https:' ? https : http;
+    //const lib = parsed.protocol === 'https:' ? https : http;
+    const lib = http;
     lib.get(parsed, (res: IncomingMessage) => {
       const { statusCode } = res;
       if (statusCode !== 200) { return resolve(scriptExtenderVersion); }
