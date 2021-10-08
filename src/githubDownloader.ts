@@ -54,7 +54,7 @@ function getRequestOptions(link) {
 
 async function downloadConsent(api: types.IExtensionApi,
                                gameSupport: IGameSupport, gameId: string) {
-  return new Promise((resolve, reject) => {
+  return new Promise<void>((resolve, reject) => {
     api.sendNotification({
       id: `scriptextender-missing-${gameId}`,
       type: 'info',
@@ -106,7 +106,7 @@ async function notifyUpdate(api: types.IExtensionApi, gameSupport: IGameSupport,
                             latest: string, current: string) {
   const gameId = selectors.activeGameId(api.store.getState());
   const t = api.translate;
-  return new Promise((resolve, reject) => {
+  return new Promise<void>((resolve, reject) => {
     api.sendNotification({
       type: 'info',
       id: `scriptextender-update-${gameId}`,
