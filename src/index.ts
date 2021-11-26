@@ -432,7 +432,7 @@ function dialogActions(api: types.IExtensionApi,
                   dismiss();
                   return Promise.resolve();
                 });
-              }, 'never');
+              }, 'never', { allowInstall: false });
           } else {
             api.sendNotification({
               type: 'warning',
