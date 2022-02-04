@@ -91,12 +91,12 @@ async function downloadConsent(api: types.IExtensionApi,
           },
         },
         {
-          title: 'Dismiss',
+          icon: 'close',
           action: (dismiss) => {
             resolve();
             dismiss();
           },
-        },
+        } as any,
       ],
     });
   });
@@ -218,7 +218,7 @@ async function startDownload(api: types.IExtensionApi, gameSupport: IGameSupport
         }
       }
       api.events.emit('start-install-download', id, true, (err, modId) => {
-        if (err !== null) {
+        if ((err !== null) && !(err instanceof util.UserCanceled)) {
           api.showErrorNotification('Failed to install script extender',
             err, { allowReport: false });
         }
