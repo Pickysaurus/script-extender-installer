@@ -3,7 +3,7 @@ import * as _ from 'lodash';
 import * as semver from 'semver';
 import * as url from 'url';
 
-import { log, selectors, types, util } from 'vortex-api';
+import { actions, log, selectors, types, util } from 'vortex-api';
 
 import { ignoreNotifications } from './index';
 import { IGameSupport } from './types';
@@ -222,7 +222,11 @@ async function startDownload(api: types.IExtensionApi, gameSupport: IGameSupport
           api.showErrorNotification('Failed to install script extender',
             err, { allowReport: false });
         }
-
+        const batch = [
+          actions.setModAttribute(gameSupport.gameId, modId, 'source', 'website'),
+          actions.setModAttribute(gameSupport.gameId, modId, 'url', downloadLink),
+        ];
+        util.batchDispatch(api.store, batch);
         return Promise.resolve();
       });
     }, 'ask');

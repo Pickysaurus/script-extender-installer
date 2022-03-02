@@ -111,13 +111,14 @@ const supportData: { [gameId: string]: IGameSupport } = {
     gameName: 'Oblivion',
     gameId: 'oblivion',
     scriptExtExe: 'obse_loader.exe',
-    website: 'http://obse.silverlock.org/',
-    regex: /(download\/obse_[0-9]+.zip)/i,
+    website: 'https://github.com/llde/xOBSE',
+    regex: /^(xOBSE[0-9]+.[0-9].*.(zip|7z))$/i,
     attributes: (xseVersion) => {
       return [
         { type: 'attribute', key: 'version', value: xseVersion } as any,
         ...xseAttributes.oblivion];
     },
+    gitHubAPIUrl: 'https://api.github.com/repos/llde/xOBSE',
   },
 };
 
