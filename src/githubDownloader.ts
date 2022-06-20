@@ -93,8 +93,8 @@ async function downloadConsent(api: types.IExtensionApi,
         {
           icon: 'close',
           action: (dismiss) => {
-            resolve();
             dismiss();
+            return reject(new util.UserCanceled());
           },
         } as any,
       ],
