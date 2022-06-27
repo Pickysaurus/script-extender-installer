@@ -8,6 +8,7 @@ export interface IGameSupport {
   website: string;
   regex: RegExp;
   attributes: (ver: string) => types.IInstruction[];
+  toolId: string; //The ID of the tool as defined by the Vortex extension for the game. 
   ignore?: boolean;
   gitHubAPIUrl?: string;
 }
