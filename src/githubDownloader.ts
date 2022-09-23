@@ -175,16 +175,16 @@ export async function getLatestReleases(gameSupport: IGameSupport, currentVersio
       //  property; hopefully this will remain consistent but we may have to enhance
       //  this function in the future to function on a per-script-extender basis.
       const current = releases
+        .map(rel => ({ ...rel, tag_name_sv: semver.coerce(rel['tag_name']) }))
         .filter(rel => {
-          const tagName = util.getSafe(rel, ['tag_name'], undefined);
           const isPreRelease = util.getSafe(rel, ['prerelease'], false);
-          const version = semver.valid(tagName);
+          const version = semver.valid(rel['tag_name_sv']);
 
           return (!isPreRelease
             && (version !== null)
             && ((currentVersion === undefined) || (semver.gte(version, currentVersion))));
         })
-        .sort((lhs, rhs) => semver.compare(rhs.tag_name, lhs.tag_name));
+        .sort((lhs, rhs) => semver.compare(rhs['tag_name_sv'], lhs['tag_name_sv']));
 
       return Promise.resolve(current);
     });

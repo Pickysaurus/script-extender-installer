@@ -112,7 +112,7 @@ const supportData: { [gameId: string]: IGameSupport } = {
     gameId: 'oblivion',
     scriptExtExe: 'obse_loader.exe',
     website: 'https://github.com/llde/xOBSE',
-    regex: /^(xOBSE[0-9]+.[0-9].*.(zip|7z))$/i,
+    regex: /^(xOBSE-?[0-9]+\.[0-9]+.*\.(zip|7z))$/i,
     attributes: (xseVersion) => {
       return [
         { type: 'attribute', key: 'version', value: xseVersion } as any,
