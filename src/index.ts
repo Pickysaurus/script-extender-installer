@@ -25,6 +25,7 @@ const supportData: { [gameId: string]: IGameSupport } = {
         { type: 'attribute', key: 'version', value: xseVersion } as any,
         ...xseAttributes.skyrim];
     },
+    toolId: 'skse'
   },
   skyrimse: {
     name: 'Skyrim Script Extender 64 (SKSE64)',
@@ -38,6 +39,7 @@ const supportData: { [gameId: string]: IGameSupport } = {
         { type: 'attribute', key: 'version', value: xseVersion } as any,
         ...xseAttributes.skyrimse];
     },
+    toolId: 'skse64'
   },
   skyrimvr: {
     name: 'Skyrim Script Extender VR (SKSEVR)',
@@ -51,6 +53,7 @@ const supportData: { [gameId: string]: IGameSupport } = {
         { type: 'attribute', key: 'version', value: xseVersion } as any,
         ...xseAttributes.skyrimvr];
     },
+    toolId: 'sksevr'
   },
   fallout4: {
     name: 'Fallout 4 Script Extender (F4SE)',
@@ -64,6 +67,7 @@ const supportData: { [gameId: string]: IGameSupport } = {
         { type: 'attribute', key: 'version', value: xseVersion } as any,
         ...xseAttributes.fallout4];
     },
+    toolId: 'f4se'
   },
   fallout4vr: {
     name: 'Fallout 4 Script Extender VR (F4SE)',
@@ -78,6 +82,7 @@ const supportData: { [gameId: string]: IGameSupport } = {
         ...xseAttributes.fallout4vr,
       ];
     },
+    toolId: 'F4SEVR'
   },
   falloutnv: {
     name: 'New Vegas Script Extender (NVSE)',
@@ -92,6 +97,7 @@ const supportData: { [gameId: string]: IGameSupport } = {
         ...xseAttributes.falloutnv];
     },
     gitHubAPIUrl: 'https://api.github.com/repos/xNVSE/NVSE',
+    toolId: 'nvse'
   },
   fallout3: {
     name: 'Fallout Script Extender (FOSE)',
@@ -105,6 +111,7 @@ const supportData: { [gameId: string]: IGameSupport } = {
         { type: 'attribute', key: 'version', value: xseVersion } as any,
         ...xseAttributes.fallout3];
     },
+    toolId: 'fose'
   },
   oblivion: {
     name: 'Oblivion Script Extender (OBSE)',
@@ -119,6 +126,7 @@ const supportData: { [gameId: string]: IGameSupport } = {
         ...xseAttributes.oblivion];
     },
     gitHubAPIUrl: 'https://api.github.com/repos/llde/xOBSE',
+    toolId: 'obse'
   },
 };
 
@@ -162,12 +170,22 @@ function testScriptExtender(instructions, api: types.IExtensionApi): Promise<boo
   });
 }
 
-function isXboxVersion(discoveryPath: string): boolean {
+async function isXboxVersion(discoveryPath: string): Promise<boolean> {
   // Check if this is the xbox game pass variant of the game - script extenders
   //  are not supported (yet).
-  const hasPathElement = (element) =>
-    discoveryPath.toLowerCase().includes(element);
-  return ['modifiablewindowsapps', '3275kfvn8vcwc'].find(hasPathElement) !== undefined;
+  try {
+    const xboxManifest: string = path.join(discoveryPath, 'appxmanifest.xml');
+    await fs.statAsync(xboxManifest);
+    return true;
+  }
+  catch(err) {
+    if (err.code !== 'ENOENT') log('info', 'Xbox version check failed with an unexpected error', err)
+    return false
+  }
+
+  // const hasPathElement = (element) =>
+  //   discoveryPath.toLowerCase().includes(element);
+  // return ['modifiablewindowsapps', '3275kfvn8vcwc'].find(hasPathElement) !== undefined;
 }
 
 async function onCheckModVersion(api, gameId, mods) {
@@ -181,7 +199,8 @@ async function onCheckModVersion(api, gameId, mods) {
     return;
   }
   const gamePath = getGamePath(gameId, api);
-  if (gamePath === undefined || isXboxVersion(gamePath)) {
+  const isXbox: boolean = await isXboxVersion(gamePath);
+  if (gamePath === undefined || isXbox) {
     return;
   }
 
@@ -254,7 +273,9 @@ async function onGameModeActivated(api: types.IExtensionApi, gameId: string) {
     return false;
   }
 
-  if (isXboxVersion(gamePath)) {
+  const isXbox = await isXboxVersion(gamePath);
+
+  if (isXbox) {
     return;
   }
 
@@ -400,7 +421,7 @@ function dialogActions(api: types.IExtensionApi,
                     return Promise.resolve();
                   }
                 }
-                api.events.emit('start-install-download', id, true, (err, modId) => {
+                api.events.emit('start-install-download', id, true, async (err, modId) => {
                   if (err) {
                     // Error notification gets reported by the event listener
                     log('error', 'Error installing download', err.message);
@@ -423,11 +444,27 @@ function dialogActions(api: types.IExtensionApi,
 
                         return (isScriptExtender && isEnabled);
                       });
+                      // Disable any other copies of the script extender
                       scriptExtenders.forEach(se =>
                         api.store.dispatch(actions.setModEnabled(activeProfile.id, se.id, false)));
+                      // Enable the new script extender mod
                       api.store.dispatch(actions.setModEnabled(activeProfile.id, modId, true));
+                      // Force-deploy the xSE files
+                      await api.emitAndAwait('deploy-single-mod', activeProfile.gameId, modId, true);
+                      // Refresh the tools dashlet (does this actually work?)
+                      await api.emitAndAwait('discover-tools', activeProfile.gameId);
+                      // Set the xSE tool as primary. 
                       api.store.dispatch(
-                        actions.setDeploymentNecessary(activeProfile.gameId, true));
+                        { type: 'SET_PRIMARY_TOOL', 
+                          payload: { 
+                            gameId: activeProfile.gameId, 
+                            toolId: gameSupportData.toolId 
+                          } 
+                        }
+                      );
+                      // api.store.dispatch(
+                      //   actions.setDeploymentNecessary(activeProfile.gameId, true)
+                      // );
                     }
                   }
                   dismiss();
@@ -456,7 +493,7 @@ function dialogActions(api: types.IExtensionApi,
       label: 'Open in browser',
       action: () => {
         // Open the script extender site in Vortex.
-        util.opn(gameSupportData.website).catch(err => undefined);
+        util.opn(gameSupportData.website).catch(() => undefined);
         dismiss();
       },
     },
@@ -614,7 +651,9 @@ async function testMisconfiguredPrimaryTool(api: types.IExtensionApi): Promise<t
     return Promise.resolve(undefined);
   }
 
-  if (isXboxVersion(discovery.path)) {
+  const isXbox = await isXboxVersion(discovery.path);
+
+  if (isXbox) {
     return Promise.resolve(undefined);
   }
 
