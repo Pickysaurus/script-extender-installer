@@ -1,10 +1,19 @@
 import Nexus from 'nexus-api';
 import { actions, log, selectors, types, util } from 'vortex-api';
 import { IGameSupport } from './types';
-import { ignoreNotifications } from './util';
+import { getGameStore, ignoreNotifications } from './util';
 
 
-async function promptInstall(api: types.IExtensionApi, gameSupport: IGameSupport, gameId: string) {
+async function promptInstall(api: types.IExtensionApi, gameSupport: IGameSupport, gameId: string, version: string, store: string) {
+    const storeName = (id: string) => {
+        switch(id) {
+            case 'gog': return 'GOG';
+            case 'epic': return 'Epic Games';
+            case 'xbox': return 'Xbox Game Pass';
+            case 'steam': return 'Steam';
+            default: return 'Unknown Game Store';
+        }
+    }
     
     return new Promise<void>(((resolve, reject) => {
         api.sendNotification?.({
@@ -12,7 +21,7 @@ async function promptInstall(api: types.IExtensionApi, gameSupport: IGameSupport
             type: 'info',
             noDismiss: true,
             allowSuppress: true,
-            title: '{{name}} not installed',
+            title: 'Script Extender not installed',
             message: gameSupport.name,
             replace: { name: gameSupport.name },
             actions: [
@@ -21,8 +30,9 @@ async function promptInstall(api: types.IExtensionApi, gameSupport: IGameSupport
                     action: (dismiss) =>  api.showDialog?.('info', '{{name}} not found', {
                         text: 'Vortex could not detect {{name}}. This means it is either not installed or installed incorrectly.'
                         + '\n\nFor the best modding experience, we recommend downloading and installing the script extender.'
+                        + '\n\nYou are running version {{version}} ({{store}}) of the game, please make sure you use the correct script extender version.'
                         + '\n\nIf you ignore this notice, Vortex will not remind you again until it is restarted.',
-                        parameters: { name: gameSupport.name },
+                        parameters: { name: gameSupport.name, version: version || '?.?.?', store: storeName(store) },
                       },
                       [{
                         label: 'Ignore',
@@ -51,15 +61,16 @@ export async function downloadScriptExtender(api: types.IExtensionApi, gameSuppo
     const discovery = selectors.discoveryByGame(state, gameId);
     const version: string = await util.getGame(gameId).getInstalledVersion?.(discovery);
     // Break off the final part of the version as we don't need it.
-    const versionBasic = version ? version.split('.').slice(0,2).join('.') : undefined;
+    const versionBasic = version ? version.split('.').slice(0,3).join('.') : undefined;
+    const gameStore = getGameStore(gameId, api);
 
     try {
         // Ask the user if they want to install it.
-        await promptInstall(api, gameSupport, gameId);
+        await promptInstall(api, gameSupport, gameId, versionBasic, gameStore);
         // If yes, start installing.
         const modId = await startDownload(api, gameSupport, gameId, versionBasic);
         // Force-deploy the xSE files
-        await api.emitAndAwait('deploy-single-mod', gameId, modId, true);
+        if (modId) await api.emitAndAwait('deploy-single-mod', gameId, modId, true);
         // Refresh the tools dashlet
         await api.emitAndAwait('discover-tools', gameId);
         // Configure the primary tool. 
@@ -96,17 +107,19 @@ async function startDownload(
     
     const nexusModsGameId = gameSupport.nexusMods?.gameId;
     const nexusModsModId = gameSupport.nexusMods?.modId;
-    const nexusInfo: any = util.getSafe(api.getState(), ['confidential', 'account', 'nexus'], {});
+    const state = api.getState();
+    const nexusInfo: any = util.getSafe(state, ['persistent', 'nexus', 'userInfo'], undefined);
+    const APIKEY: string = util.getSafe(state, ['confidential', 'account', 'nexus', 'APIKey'], undefined);
 
     // Free users or logged out users should be directed to the website.
     const modPageURL = `https://www.nexusmods.com/${gameSupport.nexusMods?.gameId}/mods/${gameSupport.nexusMods?.modId}?tab=files`;
     
     // If the user is logged out, all we can do is open the web page.
-    if (!nexusInfo) return util.opn(modPageURL).catch(() => null);
+    if (!nexusInfo || !APIKEY) return util.opn(modPageURL).catch(() => null);
     
     // Use the Nexus Mods API to get the file ID. 
     const nexus = new Nexus('Vortex', util.getApplication().version, gameId, 30000);
-    await nexus.setKey(nexusInfo?.APIKey);
+    await nexus.setKey(APIKEY);
     let fileId: number = -1;
     try {
         const allModFiles = await nexus.getModFiles(nexusModsModId, nexusModsGameId);
@@ -115,7 +128,7 @@ async function startDownload(
             .filter(f => gameVersion ? f.description.includes(gameVersion) : f.is_primary);
         // We found more than one relevant file!
         if (modFiles.length > 1) {
-            modFiles.sort((a,b) => a.uploaded_timestamp - b.uploaded_timestamp);
+            modFiles.sort((a,b) => b.uploaded_timestamp - a.uploaded_timestamp);
         }
         const modFile = modFiles[0];
         if (!modFile) {
@@ -131,13 +144,13 @@ async function startDownload(
 
     
     // Direct non-Premium users to the download page. 
-    if (!nexusInfo?.is_Premium) {
+    if (!nexusInfo?.isPremium) {
         const modFileURL = `${modPageURL}${fileId !== -1 ? `&file_id=${fileId}`: ''}`
         return util.opn(modFileURL).catch(() => null);
     }
     // We can start the download automatically for Premium users.
     else {
-        const nxm = `nxm://${nexusModsGameId}/mods/${nexusModsGameId}/files/${fileId}`;
+        const nxm = `nxm://${nexusModsGameId}/mods/${nexusModsModId}/files/${fileId}`;
         return new Promise<string>((resolve, reject) => {
             api.events.emit('start-download', [nxm], { game: gameId, name: gameSupport.name }, undefined,
             (err: Error, id: string) => {
@@ -150,7 +163,7 @@ async function startDownload(
                     return resolve(modId);
                 }
                 );
-            }
+            }, 'replace'
             );
         });
     }
