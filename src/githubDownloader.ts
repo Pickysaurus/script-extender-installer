@@ -5,7 +5,7 @@ import * as url from 'url';
 
 import { actions, log, selectors, types, util } from 'vortex-api';
 
-import { ignoreNotifications } from './index';
+import { ignoreNotifications } from './util';
 import { IGameSupport } from './types';
 
 import { IncomingHttpHeaders, IncomingMessage } from 'http';

@@ -1,194 +1,18 @@
-import * as Bluebird from 'bluebird';
-import getVersion from 'exe-version';
 import * as http from 'http';
-//import * as https from 'https';
 import { IncomingMessage } from 'http';
 import * as path from 'path';
 import * as semver from 'semver';
 import * as url from 'url';
-import { actions, fs, log, selectors, types, util } from 'vortex-api';
-
+import { actions, log, selectors, types, util } from 'vortex-api';
+import { getGameStore, getScriptExtenderVersion, getGamePath, toBlue, clearNotifications, ignoreNotifications } from './util';
 import * as gitHubDownloader from './githubDownloader';
+import * as nexusModsDownloader from './nexusModsDownloader';
+import supportData from './gameSupport';
+import { testSupported, installScriptExtender } from './installer';
 import { IGameSupport } from './types';
-import * as xseAttributes from './xse-attributes.json';
 
-const supportData: { [gameId: string]: IGameSupport } = {
-  skyrim: {
-    name: 'Skyrim Script Extender (SKSE)',
-    gameName: 'Skyrim',
-    gameId: 'skyrim',
-    scriptExtExe: 'skse_loader.exe',
-    website: 'http://skse.silverlock.org/',
-    regex: /(beta\/skse_[0-9]+_[0-9]+_[0-9]+.7z)/i,
-    attributes: (xseVersion) => {
-      return [
-        { type: 'attribute', key: 'version', value: xseVersion } as any,
-        ...xseAttributes.skyrim];
-    },
-    toolId: 'skse'
-  },
-  skyrimse: {
-    name: 'Skyrim Script Extender 64 (SKSE64)',
-    gameName: 'Skyrim SE',
-    gameId: 'skyrimse',
-    scriptExtExe: 'skse64_loader.exe',
-    website: 'http://skse.silverlock.org/',
-    regex: /(beta\/skse64_[0-9]+_[0-9]+_[0-9]+.7z)/i,
-    attributes: (xseVersion) => {
-      return [
-        { type: 'attribute', key: 'version', value: xseVersion } as any,
-        ...xseAttributes.skyrimse];
-    },
-    toolId: 'skse64'
-  },
-  skyrimvr: {
-    name: 'Skyrim Script Extender VR (SKSEVR)',
-    gameName: 'Skyrim VR',
-    gameId: 'skyrimvr',
-    scriptExtExe: 'sksevr_loader.exe',
-    website: 'http://skse.silverlock.org/',
-    regex: /(beta\/sksevr_[0-9]+_[0-9]+_[0-9]+.7z)/i,
-    attributes: (xseVersion) => {
-      return [
-        { type: 'attribute', key: 'version', value: xseVersion } as any,
-        ...xseAttributes.skyrimvr];
-    },
-    toolId: 'sksevr'
-  },
-  fallout4: {
-    name: 'Fallout 4 Script Extender (F4SE)',
-    gameName: 'Fallout 4',
-    gameId: 'fallout4',
-    scriptExtExe: 'f4se_loader.exe',
-    website: 'http://f4se.silverlock.org/',
-    regex: /(beta\/f4se_[0-9]+_[0-9]+_[0-9]+.7z)/i,
-    attributes: (xseVersion) => {
-      return [
-        { type: 'attribute', key: 'version', value: xseVersion } as any,
-        ...xseAttributes.fallout4];
-    },
-    toolId: 'f4se'
-  },
-  fallout4vr: {
-    name: 'Fallout 4 Script Extender VR (F4SE)',
-    gameName: 'Fallout 4 VR',
-    gameId: 'fallout4vr',
-    scriptExtExe: 'f4sevr_loader.exe',
-    website: 'http://f4se.silverlock.org/',
-    regex: /(beta\/f4sevr_[0-9]+_[0-9]+_[0-9]+.7z)/i,
-    attributes: (xseVersion) => {
-      return [
-        { type: 'attribute', key: 'version', value: xseVersion } as any,
-        ...xseAttributes.fallout4vr,
-      ];
-    },
-    toolId: 'F4SEVR'
-  },
-  falloutnv: {
-    name: 'New Vegas Script Extender (NVSE)',
-    gameName: 'Fallout NV',
-    gameId: 'falloutnv',
-    scriptExtExe: 'nvse_loader.exe',
-    website: 'https://github.com/xNVSE/NVSE/',
-    regex: /(nvse_[0-9]+_[0-9]+_[a-zA-Z0-9]+.7z)/i,
-    attributes: (xseVersion) => {
-      return [
-        { type: 'attribute', key: 'version', value: xseVersion } as any,
-        ...xseAttributes.falloutnv];
-    },
-    gitHubAPIUrl: 'https://api.github.com/repos/xNVSE/NVSE',
-    toolId: 'nvse'
-  },
-  fallout3: {
-    name: 'Fallout Script Extender (FOSE)',
-    gameName: 'Fallout 3',
-    gameId: 'fallout3',
-    scriptExtExe: 'fose_loader.exe',
-    website: 'http://fose.silverlock.org/',
-    regex: /(download\/fose_v[0-9]+_[0-9]+_[a-zA-Z0-9]+.7z)/i,
-    attributes: (xseVersion) => {
-      return [
-        { type: 'attribute', key: 'version', value: xseVersion } as any,
-        ...xseAttributes.fallout3];
-    },
-    toolId: 'fose'
-  },
-  oblivion: {
-    name: 'Oblivion Script Extender (OBSE)',
-    gameName: 'Oblivion',
-    gameId: 'oblivion',
-    scriptExtExe: 'obse_loader.exe',
-    website: 'https://github.com/llde/xOBSE',
-    regex: /^(xOBSE-?[0-9]+\.[0-9]+.*\.(zip|7z))$/i,
-    attributes: (xseVersion) => {
-      return [
-        { type: 'attribute', key: 'version', value: xseVersion } as any,
-        ...xseAttributes.oblivion];
-    },
-    gitHubAPIUrl: 'https://api.github.com/repos/llde/xOBSE',
-    toolId: 'obse'
-  },
-};
 
-const getScriptExtenderVersion = (extenderPath: string): Promise<string> => {
-  // Check the file we're looking for actually exists.
-  return new Promise((resolve, reject) => {
-    fs.statAsync(extenderPath)
-    .then(() => {
-      // The exe versions appear to have a leading zero. So we need to cut it off.
-      let exeVersion = getVersion(extenderPath);
-      exeVersion = exeVersion.startsWith('0')
-        ? exeVersion.substr(exeVersion.indexOf('.'), exeVersion.length)
-        : exeVersion;
-      return resolve(semver.coerce(exeVersion).version);
-    })
-    .catch(() => {
-      // Return a blank string if the file doesn't exist.
-      log('debug', 'Script extender not found:', extenderPath);
-      return resolve(undefined);
-    });
-
-  });
-};
-
-const getGamePath = (gameId: string, api): string => {
-  const state: types.IState = api.store.getState();
-  const discovery = state.settings.gameMode.discovered[gameId];
-  if (discovery !== undefined) {
-    return discovery.path;
-  } else {
-    return undefined;
-  }
-};
-
-function testScriptExtender(instructions, api: types.IExtensionApi): Promise<boolean> {
-  const copies = instructions.filter(instruction => instruction.type === 'copy');
-  const gameId = selectors.activeGameId(api.store.getState());
-  const exeName = supportData[gameId].scriptExtExe;
-  return new Promise((resolve, reject) => {
-    return resolve(copies.find(file => path.basename(file.destination) === exeName) !== undefined);
-  });
-}
-
-async function isXboxVersion(discoveryPath: string): Promise<boolean> {
-  // Check if this is the xbox game pass variant of the game - script extenders
-  //  are not supported (yet).
-  try {
-    const xboxManifest: string = path.join(discoveryPath, 'appxmanifest.xml');
-    await fs.statAsync(xboxManifest);
-    return true;
-  }
-  catch(err) {
-    if (err.code !== 'ENOENT') log('info', 'Xbox version check failed with an unexpected error', err)
-    return false
-  }
-
-  // const hasPathElement = (element) =>
-  //   discoveryPath.toLowerCase().includes(element);
-  // return ['modifiablewindowsapps', '3275kfvn8vcwc'].find(hasPathElement) !== undefined;
-}
-
-async function onCheckModVersion(api, gameId, mods) {
+async function onCheckModVersion(api: types.IExtensionApi, gameId: string, mods: { [id: string]: types.IMod }) {
   // Clear any update notifications.
   clearNotifications(api, true);
 
@@ -199,8 +23,8 @@ async function onCheckModVersion(api, gameId, mods) {
     return;
   }
   const gamePath = getGamePath(gameId, api);
-  const isXbox: boolean = await isXboxVersion(gamePath);
-  if (gamePath === undefined || isXbox) {
+  const gameStore = getGameStore(gameId, api);
+  if (gamePath === undefined || ['xbox', 'epic'].includes(gameStore)) {
     return;
   }
 
@@ -211,15 +35,16 @@ async function onCheckModVersion(api, gameId, mods) {
   if (!scriptExtenderVersion) { return; }
 
   // Convert the mods object into an array.
-  const modArray = Object.keys(mods).map(k => mods[k]);
+  const modArray = Object.values(mods);
   // Get active profile, so we know which mods are enabled.
   const profile = selectors.activeProfile(api.store.getState());
   // Filter out any non-script extender mods or those which are disabled (old versions).
   const scriptExtenders =
-    modArray.filter(mod => {
+    modArray.filter((mod: types.IMod) => {
       const isScriptExtender = util.getSafe(mod, ['attributes', 'scriptExtender'], false);
       const isEnabled = util.getSafe(profile, ['modState', mod.id, 'enabled'], false);
-      return (isScriptExtender && isEnabled);
+      const isNotFromNexusMods = mod.attributes?.source !== 'nexus';
+      return (isScriptExtender && isEnabled && isNotFromNexusMods);
     });
 
   // Check for update.
@@ -273,17 +98,17 @@ async function onGameModeActivated(api: types.IExtensionApi, gameId: string) {
     return false;
   }
 
-  const isXbox = await isXboxVersion(gamePath);
+  // Work out which game store the user has. 
+  const gameStore = getGameStore(gameId, api);
 
-  if (isXbox) {
-    return;
-  }
+  // SKSE is not compatible with Xbox Game Pass or Epic Games, so we don't want to notify the user in this case.
+  if (['xbox', 'epic'].includes(gameStore)) return;
 
   // Check for disabled (but installed) script extenders.
   const mods = util.getSafe(api.store.getState(), ['persistent', 'mods', gameId], undefined);
-  const modArray = mods ? Object.keys(mods).map(k => mods[k]) : undefined;
+  const modArray: types.IMod[] = mods ? Object.values(mods) : [];
   const installedScriptExtenders =
-    modArray ? modArray.filter(mod => !!mod?.attributes?.scriptExtender).length : 0;
+    modArray.filter(mod => !!mod?.attributes?.scriptExtender).length;
   if (installedScriptExtenders) {
     return;
   }
@@ -294,9 +119,9 @@ async function onGameModeActivated(api: types.IExtensionApi, gameId: string) {
 
   // If the script extender isn't installed, return. Perhaps we should recommend installing it?
   if (!scriptExtenderVersion) {
-    return (!!gameSupport?.gitHubAPIUrl)
-      ? gitHubDownloader.downloadScriptExtender(api, gameSupport)
-      : notifyNotInstalled(gameSupport, api);
+    if (!!gameSupport?.nexusMods) return nexusModsDownloader.downloadScriptExtender(api, gameSupport);
+    else if (!!gameSupport?.gitHubAPIUrl) return gitHubDownloader.downloadScriptExtender(api, gameSupport);
+    else return notifyNotInstalled(gameSupport, api);
   }
 }
 
@@ -560,80 +385,6 @@ function notifyNotInstalled(gameSupportData: IGameSupport, api: types.IExtension
   });
 }
 
-function clearNotifications(api, preserveMissing?: boolean) {
-  Object.keys(supportData).forEach(key => {
-    if (!preserveMissing) {
-      api.dismissNotification(`scriptextender-missing-${key}`);
-    }
-    api.dismissNotification(`scriptextender-update-${key}`);
-  });
-}
-
-function testSupported(files: string[], gameId: string): Promise<types.ISupportedResult> {
-  return new Promise((resolve, reject) => {
-    if (!supportData[gameId]) {
-      return resolve({ supported: false, requiredFiles: [] });
-    } // Not a script extender friendly game.
-    const scriptExtender =
-      files.find((file) => path.basename(file) === supportData[gameId].scriptExtExe);
-    resolve({ supported: scriptExtender ? true : false, requiredFiles: [] });
-  });
-}
-
-async function installScriptExtender(files: string[], destinationPath: string, gameId: string)
-    : Promise<types.IInstallResult> {
-  // Install the script extender.
-  const gameData = supportData[gameId];
-  const scriptExtender =
-    files.find(file => path.basename(file).toLowerCase() === gameData.scriptExtExe.toLowerCase());
-  const idx = scriptExtender.indexOf(path.basename(scriptExtender));
-  const rootPath = path.dirname(scriptExtender);
-
-  // Get the attribute data we need.
-  const scriptExtenderVersion =
-    await getScriptExtenderVersion(path.join(destinationPath, scriptExtender));
-  const attributes = gameData.attributes(scriptExtenderVersion);
-  // Include rules to make this conflict with any other script extender versions.
-  attributes.push(
-    {
-      type: 'rule',
-      rule: {
-        reference: {
-          logicalFileName: gameData.name,
-          versionMatch: `<${scriptExtenderVersion} || >${scriptExtenderVersion}`,
-        },
-        type: 'conflicts',
-        comment: 'Incompatible Script Extender',
-      },
-    },
-  );
-
-  // Remove directories and anything that isn't in the rootPath.
-  const filtered = files.filter(file =>
-    ((file.indexOf(rootPath) !== -1)
-    && (!file.endsWith(path.sep))));
-
-  // Build install instructions and attach attributes to it.
-  const instructions: types.IInstruction[] = filtered.map(file => {
-    const copy: types.IInstruction = {
-      type: 'copy' as 'copy',
-      source: file,
-      destination: path.join(file.substr(idx)),
-    };
-    return copy;
-  }).concat(attributes);
-
-  // TODO: remove this once we had a chance to fix the modtypes conflict issue
-  //  and have re-instated the script-extender modtype.
-  instructions.push({ type: 'setmodtype', value: 'dinput' });
-
-  return Promise.resolve({ instructions });
-}
-
-function toBlue<T>(func: (...args: any[]) => Promise<T>): (...args: any[]) => Bluebird<T> {
-  return (...args: any[]) => Bluebird.resolve(func(...args));
-}
-
 async function testMisconfiguredPrimaryTool(api: types.IExtensionApi): Promise<types.ITestResult> {
   const state = api.store.getState();
   const gameMode = selectors.activeGameId(state);
@@ -651,9 +402,10 @@ async function testMisconfiguredPrimaryTool(api: types.IExtensionApi): Promise<t
     return Promise.resolve(undefined);
   }
 
-  const isXbox = await isXboxVersion(discovery.path);
+  
+  const gameStore = getGameStore(gameMode, api);
 
-  if (isXbox) {
+  if (['epic', 'xbox'].includes(gameStore)) {
     return Promise.resolve(undefined);
   }
 
@@ -704,31 +456,15 @@ function main(context: types.IExtensionContext) {
 
   context.registerTest('misconfigured-script-extender', 'gamemode-activated',
     () => testMisconfiguredPrimaryTool(context.api));
-
-  // Commenting the modtype out as Vortex currently is not able to detect conflicts between
-  //  modtypes and we've confirmed that this can cause unexpected behaviour
-  //  as seen in https://github.com/Nexus-Mods/Vortex/issues/6307.
-  // context.registerModType(
-  //   'script-extender', 10,
-  //   (game) => supportData[game] !== undefined,
-  //   (game: types.IGame) =>
-  //     getGamePath(game.id, context.api),
-  //   (instructions) => testScriptExtender(instructions, context.api),
-  //   { mergeMods: true, name: 'Script Extender' });
+  
   context.once(() => {
     context.api.events.on('gamemode-activated',
       async (gameId: string) => onGameModeActivated(context.api, gameId));
     context.api.events.on('check-mods-version',
-      (gameId: string, mods: types.IMod[]) => onCheckModVersion(context.api, gameId, mods));
+      (gameId: string, mods: {[id: string]: types.IMod}) => onCheckModVersion(context.api, gameId, mods));
   });
 
   return true;
-}
-
-export function ignoreNotifications(gameSupport: IGameSupport) {
-  // Allows the github downloader to set the ignore flag.
-  const match = Object.keys(supportData).find(key => key === gameSupport.gameId);
-  supportData[match].ignore = true;
 }
 
 export default main;

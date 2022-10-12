@@ -11,4 +11,8 @@ export interface IGameSupport {
   toolId: string; //The ID of the tool as defined by the Vortex extension for the game. 
   ignore?: boolean;
   gitHubAPIUrl?: string;
+  nexusMods?: {
+    gameId: string;
+    modId: number;
+  }
 }

@@ -2,172 +2,22 @@
     "skyrim" : [
       {
           "type" : "attribute",
-          "key" : "allowRating",
-          "value" : false
-      },
-      {
-          "type" : "attribute",
-          "key" : "logicalFileName",
-          "value" : "Skyrim Script Extender (SKSE)"
-      },
-      {
-          "type": "attribute",
-          "key": "source",
-          "value": "website"
-      },
-      {
-          "type" : "attribute",
-          "key" : "url",
-          "value" : "https://skse.silverlock.org/"
-      },
-      {
-          "type" : "attribute",
-          "key" : "pictureUrl",
-          "value" : "https://staticdelivery.nexusmods.com/mods/110/images/thumbnails/100216/100216-1573836396-219554299.jpeg" 
-      },
-      {
-          "type" : "attribute",
           "key" : "scriptExtender",
           "value" : true
-      },
-      {
-          "type" : "attribute",
-          "key" : "downloadGame",
-          "value" : "skyrim"
-      },
-      {
-          "type" : "attribute",
-          "key" : "author",
-          "value" : "SKSE Team"
-      },
-      {
-        "type" : "attribute",
-        "key" : "category",
-        "value" : 39
-      },
-      {
-        "type" : "attribute",
-        "key" : "shortDescription",
-        "value" : "The Skyrim Script Extender (SKSE) is a tool used by many Skyrim mods that expands scripting capabilities and adds additional functionality to the game."
-      },
-      {
-        "type" : "attribute",
-        "key" : "modId",
-        "value" : "skse"
       }
   ],
   "skyrimse" : [
         {
             "type" : "attribute",
-            "key" : "allowRating",
-            "value" : false
-        },
-        {
-            "type" : "attribute",
-            "key" : "logicalFileName",
-            "value" : "Skyrim Script Extender 64 (SKSE64)"
-        },
-        {
-            "type" : "attribute",
-            "key" : "url",
-            "value" : "https://skse.silverlock.org/"
-        },
-        {
-            "type": "attribute",
-            "key": "source",
-            "value": "website"
-        },
-        {
-            "type" : "attribute",
-            "key" : "pictureUrl",
-            "value" : "https://staticdelivery.nexusmods.com/mods/110/images/thumbnails/100216/100216-1573836396-219554299.jpeg" 
-        },
-        {
-            "type" : "attribute",
             "key" : "scriptExtender",
             "value" : true
-        },
-        {
-            "type" : "attribute",
-            "key" : "downloadGame",
-            "value" : "skyrimse"
-        },
-        {
-            "type" : "attribute",
-            "key" : "author",
-            "value" : "SKSE Team"
-        },
-        {
-            "type" : "attribute",
-            "key" : "category",
-            "value" : 39
-        },
-        {
-            "type" : "attribute",
-            "key" : "shortDescription",
-            "value" : "The Skyrim Script Extender (SKSE) is a tool used by many Skyrim mods that expands scripting capabilities and adds additional functionality to the game."
-        },
-        {
-            "type" : "attribute",
-            "key" : "modId",
-            "value" : "skse64"
         }
   ],
   "skyrimvr" : [
         {
             "type" : "attribute",
-            "key" : "allowRating",
-            "value" : false
-        },
-        {
-            "type" : "attribute",
-            "key" : "logicalFileName",
-            "value" : "Skyrim Script Extender VR (SKSEVR)"
-        },
-        {
-            "type" : "attribute",
-            "key" : "url",
-            "value" : "https://skse.silverlock.org/"
-        },
-        {
-            "type": "attribute",
-            "key": "source",
-            "value": "website"
-        },
-        {
-            "type" : "attribute",
-            "key" : "pictureUrl",
-            "value" : "https://staticdelivery.nexusmods.com/mods/110/images/thumbnails/100216/100216-1573836396-219554299.jpeg" 
-        },
-        {
-            "type" : "attribute",
             "key" : "scriptExtender",
             "value" : true
-        },
-        {
-            "type" : "attribute",
-            "key" : "downloadGame",
-            "value" : "skyrimvr"
-        },
-        {
-            "type" : "attribute",
-            "key" : "author",
-            "value" : "SKSE Team"
-        },
-        {
-            "type" : "attribute",
-            "key" : "category",
-            "value" : 39
-        },
-        {
-            "type" : "attribute",
-            "key" : "shortDescription",
-            "value" : "The Skyrim Script Extender (SKSE) is a tool used by many Skyrim mods that expands scripting capabilities and adds additional functionality to the game."
-        },
-        {
-            "type" : "attribute",
-            "key" : "modId",
-            "value" : "sksevr"
         }
   ],
   "fallout4" : [

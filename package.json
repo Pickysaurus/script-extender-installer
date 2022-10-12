@@ -1,6 +1,6 @@
 {
   "name": "script-extender-installer",
-  "version": "1.1.12",
+  "version": "1.1.13",
   "description": "Install script extenders for Gamebyro games with Vortex",
   "main": "./out/index.js",
   "repository": "",
@@ -23,6 +23,7 @@
     "electron": "15.5.5",
     "exe-version": "Nexus-Mods/node-exe-version",
     "i18next": "^17.0.4",
+    "nexus-api": "Nexus-Mods/node-nexus-api",
     "react": "^16.8.6",
     "react-bootstrap": "^0.32.4",
     "redux": "^4.0.5",
