@@ -409,10 +409,10 @@ async function testMisconfiguredPrimaryTool(api: types.IExtensionApi): Promise<t
     return Promise.resolve(undefined);
   }
 
-  const installedSEVersion = await getScriptExtenderVersion(
-    path.join(discovery.path, supportData[gameMode].scriptExtExe));
-
-  const t = api.translate;
+  const expectedPath = path.join(discovery.path, supportData[gameMode].scriptExtExe);
+  
+  const installedSEVersion = await getScriptExtenderVersion(expectedPath);
+  
   const primaryTool: types.IDiscoveredTool = discovery.tools[primaryToolId];
   const normalize = (input: string, mod?: (input: string) => string) => (mod !== undefined)
     ? path.normalize(mod(input.toLowerCase()))
@@ -420,31 +420,41 @@ async function testMisconfiguredPrimaryTool(api: types.IExtensionApi): Promise<t
   if ((installedSEVersion !== undefined)
    && (normalize(primaryTool.path, path.basename) === normalize(supportData[gameMode].scriptExtExe))
    && (normalize(primaryTool.path, path.dirname) !== normalize(discovery.path).replace(/\/$|\\$/, ''))) {
-      return Promise.resolve({
-        description: {
-          short: 'Misconfigured Script Extender Tool',
-          long: t('Your primary tool/starter for this game is a Script Extender, but it appears to be misconfigured. '
-                + 'Vortex should be able to automatically fix this issue for you by re-configuring it to launch using:[br][/br][br][/br]'
-                + '{{valid}}[br][/br][br][/br] instead of:[br][/br][br][/br] {{invalid}}[br][/br][br][/br]'
-                + 'For more information about where/how to install script extenders, please see our wiki article:[br][/br]'
-                + '[url]https://wiki.nexusmods.com/index.php/Tool_Setup:_Script_Extenders[/url]', {
-                  replace: {
-                    invalid: primaryTool.path,
-                    valid: path.join(discovery.path, path.basename(primaryTool.path)),
-                  },
-                }),
-        },
-        automaticFix: () => {
-          api.store.dispatch(actions.addDiscoveredTool(gameMode, primaryTool.id, {
-            ...primaryTool,
-            path: path.join(discovery.path, supportData[gameMode].scriptExtExe),
-            workingDirectory: discovery.path,
-          }, false));
-          api.store.dispatch(actions.setToolVisible(gameMode, primaryTool.id, true));
-          return Promise.resolve();
-        },
-        severity: 'warning',
-      });
+    log('info', `Tool path for ${supportData.name} automatically corrected from ${primaryTool.path} to ${expectedPath}`, primaryTool.id);
+    api.store.dispatch(actions.addDiscoveredTool(gameMode, primaryTool.id, {
+        ...primaryTool,
+        path: expectedPath,
+        workingDirectory: discovery.path,
+      }, false));
+      api.store.dispatch(actions.setToolVisible(gameMode, primaryTool.id, true));
+      return Promise.resolve(undefined);
+
+      // We don't need to bother the user with this, we'll just fix it! 
+      // return Promise.resolve({
+      //   description: {
+      //     short: 'Misconfigured Script Extender Tool',
+      //     long: t('Your primary tool/starter for this game is a Script Extender, but it appears to be misconfigured. '
+      //           + 'Vortex should be able to automatically fix this issue for you by re-configuring it to launch using:[br][/br][br][/br]'
+      //           + '{{valid}}[br][/br][br][/br] instead of:[br][/br][br][/br] {{invalid}}[br][/br][br][/br]'
+      //           + 'For more information about where/how to install script extenders, please see our wiki article:[br][/br]'
+      //           + '[url]https://wiki.nexusmods.com/index.php/Tool_Setup:_Script_Extenders[/url]', {
+      //             replace: {
+      //               invalid: primaryTool.path,
+      //               valid: path.join(discovery.path, path.basename(primaryTool.path)),
+      //             },
+      //           }),
+      //   },
+      //   automaticFix: () => {
+      //     api.store.dispatch(actions.addDiscoveredTool(gameMode, primaryTool.id, {
+      //       ...primaryTool,
+      //       path: expectedPath,
+      //       workingDirectory: discovery.path,
+      //     }, false));
+      //     api.store.dispatch(actions.setToolVisible(gameMode, primaryTool.id, true));
+      //     return Promise.resolve();
+      //   },
+      //   severity: 'warning',
+      // });
   } else {
     return Promise.resolve(undefined);
   }

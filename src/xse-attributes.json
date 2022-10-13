@@ -23,172 +23,22 @@
   "fallout4" : [
         {
             "type" : "attribute",
-            "key" : "allowRating",
-            "value" : false
-        },
-        {
-            "type" : "attribute",
-            "key" : "logicalFileName",
-            "value" : "Fallout 4 Script Extender (F4SE)"
-        },
-        {
-            "type" : "attribute",
-            "key" : "url",
-            "value" : "https://f4se.silverlock.org/"
-        },
-        {
-            "type": "attribute",
-            "key": "source",
-            "value": "website"
-        },
-        {
-            "type" : "attribute",
-            "key" : "pictureUrl",
-            "value" : "https://staticdelivery.nexusmods.com/mods/1151/images/thumbnails/42147/42147-1574018373-1181117442.jpeg" 
-        },
-        {
-            "type" : "attribute",
             "key" : "scriptExtender",
             "value" : true
-        },
-        {
-            "type" : "attribute",
-            "key" : "downloadGame",
-            "value" : "fallout4"
-        },
-        {
-            "type" : "attribute",
-            "key" : "author",
-            "value" : "F4SE Team"
-        },
-        {
-            "type" : "attribute",
-            "key" : "category",
-            "value" : 38
-        },
-        {
-            "type" : "attribute",
-            "key" : "shortDescription",
-            "value" : "The Fallout 4 Script Extender, or F4SE for short, is a modder's resource that expands the scripting capabilities of Fallout 4. It does so without modifying the executable files on disk, so there are no permanent side effects."
-        },
-        {
-            "type" : "attribute",
-            "key" : "modId",
-            "value" : "f4se"
         }
   ],
   "fallout4vr": [
         {
             "type" : "attribute",
-            "key" : "allowRating",
-            "value" : false
-        },
-        {
-            "type" : "attribute",
-            "key" : "logicalFileName",
-            "value" : "Fallout 4 Script Extender VR (F4SE)"
-        },
-        {
-            "type" : "attribute",
-            "key" : "url",
-            "value" : "https://f4se.silverlock.org/"
-        },
-        {
-            "type": "attribute",
-            "key": "source",
-            "value": "website"
-        },
-        {
-            "type" : "attribute",
-            "key" : "pictureUrl",
-            "value" : "https://staticdelivery.nexusmods.com/mods/1151/images/thumbnails/42147/42147-1574018373-1181117442.jpeg" 
-        },
-        {
-            "type" : "attribute",
             "key" : "scriptExtender",
             "value" : true
-        },
-        {
-            "type" : "attribute",
-            "key" : "downloadGame",
-            "value" : "fallout4vr"
-        },
-        {
-            "type" : "attribute",
-            "key" : "author",
-            "value" : "F4SE Team"
-        },
-        {
-            "type" : "attribute",
-            "key" : "category",
-            "value" : 38
-        },
-        {
-            "type" : "attribute",
-            "key" : "shortDescription",
-            "value" : "The Fallout 4 Script Extender, or F4SE for short, is a modder's resource that expands the scripting capabilities of Fallout 4. It does so without modifying the executable files on disk, so there are no permanent side effects."
-        },
-        {
-            "type" : "attribute",
-            "key" : "modId",
-            "value" : "f4sevr"
         }
   ],
   "falloutnv": [
         {
             "type" : "attribute",
-            "key" : "allowRating",
-            "value" : false
-        },
-        {
-            "type" : "attribute",
-            "key" : "logicalFileName",
-            "value" : "New Vegas Script Extender (NVSE)"
-        },
-        {
-            "type": "attribute",
-            "key": "source",
-            "value": "website"
-        },
-        {
-            "type" : "attribute",
-            "key" : "url",
-            "value" : "https://github.com/xNVSE/NVSE"
-        },
-        {
-            "type" : "attribute",
-            "key" : "pictureUrl",
-            "value" : "https://staticdelivery.nexusmods.com/mods/130/images/thumbnails/67883/67883-1574092217-1384714337.jpeg" 
-        },
-        {
-            "type" : "attribute",
             "key" : "scriptExtender",
             "value" : true
-        },
-        {
-            "type" : "attribute",
-            "key" : "downloadGame",
-            "value" : "falloutnv"
-        },
-        {
-            "type" : "attribute",
-            "key" : "author",
-            "value" : "NVSE Team"
-        },
-        {
-            "type" : "attribute",
-            "key" : "category",
-            "value" : 59
-        },
-        {
-            "type" : "attribute",
-            "key" : "shortDescription",
-            "value" : "The New Vegas Script Extender, or NVSE for short, is a modder's resource that expands the scripting capabilities of Fallout: NV. It does so without modifying the executable files on disk, so there are no permanent side effects."
-        },
-        {
-            "type" : "attribute",
-            "key" : "modId",
-            "value" : "nvse"
         }
   ],
   "fallout3" : [

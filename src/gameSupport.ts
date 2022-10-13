@@ -68,7 +68,11 @@ const supportData: { [gameId: string]: IGameSupport } = {
           { type: 'attribute', key: 'version', value: xseVersion } as any,
           ...xseAttributes.fallout4];
       },
-      toolId: 'f4se'
+      toolId: 'f4se',
+      nexusMods: {
+        gameId: 'fallout4',
+        modId: 42147
+      }
     },
     fallout4vr: {
       name: 'Fallout 4 Script Extender VR (F4SE)',
@@ -83,7 +87,11 @@ const supportData: { [gameId: string]: IGameSupport } = {
           ...xseAttributes.fallout4vr,
         ];
       },
-      toolId: 'F4SEVR'
+      toolId: 'F4SEVR',
+      nexusMods: {
+        gameId: 'fallout4',
+        modId: 42159
+      }
     },
     falloutnv: {
       name: 'New Vegas Script Extender (NVSE)',
@@ -98,7 +106,11 @@ const supportData: { [gameId: string]: IGameSupport } = {
           ...xseAttributes.falloutnv];
       },
       gitHubAPIUrl: 'https://api.github.com/repos/xNVSE/NVSE',
-      toolId: 'nvse'
+      toolId: 'nvse',
+      nexusMods: {
+        gameId: 'newvegas',
+        modId: 67883
+      }
     },
     fallout3: {
       name: 'Fallout Script Extender (FOSE)',
