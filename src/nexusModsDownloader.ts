@@ -125,7 +125,7 @@ async function startDownload(
         const allModFiles = await nexus.getModFiles(nexusModsModId, nexusModsGameId);
         // Look for either files that include the game version in the description or the primary file.
         let modFiles = allModFiles.files
-            .filter(f => gameVersion ? f.description.includes(gameVersion) : f.is_primary);
+            .filter(f => (!!gameVersion && !!f.description && f.description.includes(gameVersion)) || (!f.description && f.is_primary));
         // We found more than one relevant file!
         if (modFiles.length > 1) {
             modFiles.sort((a,b) => b.uploaded_timestamp - a.uploaded_timestamp);
