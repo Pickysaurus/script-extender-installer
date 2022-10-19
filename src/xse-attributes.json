@@ -44,58 +44,8 @@
   "fallout3" : [
         {
             "type" : "attribute",
-            "key" : "allowRating",
-            "value" : false
-        },
-        {
-            "type" : "attribute",
-            "key" : "logicalFileName",
-            "value" : "Fallout Script Extender (FOSE)"
-        },
-        {
-            "type" : "attribute",
-            "key" : "url",
-            "value" : "http://fose.silverlock.org/"
-        },
-        {
-            "type": "attribute",
-            "key": "source",
-            "value": "website"
-        },
-        {
-            "type" : "attribute",
-            "key" : "pictureUrl",
-            "value" : "" 
-        },
-        {
-            "type" : "attribute",
             "key" : "scriptExtender",
             "value" : true
-        },
-        {
-            "type" : "attribute",
-            "key" : "downloadGame",
-            "value" : "fallout3"
-        },
-        {
-            "type" : "attribute",
-            "key" : "author",
-            "value" : "FOSE Team"
-        },
-        {
-            "type" : "attribute",
-            "key" : "category",
-            "value" : 59
-        },
-        {
-            "type" : "attribute",
-            "key" : "shortDescription",
-            "value" : "Expands the scripting capabilities of Fallout 3 allowing for more complex and feature-rich mods."
-        },
-        {
-            "type" : "attribute",
-            "key" : "modId",
-            "value" : "fose"
         }
   ],
   "oblivion" : [
