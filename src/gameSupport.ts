@@ -124,7 +124,11 @@ const supportData: { [gameId: string]: IGameSupport } = {
           { type: 'attribute', key: 'version', value: xseVersion } as any,
           ...xseAttributes.fallout3];
       },
-      toolId: 'fose'
+      toolId: 'fose',
+      nexusMods: {
+        gameId: 'fallout3',
+        modId: 8606
+      }
     },
     oblivion: {
       name: 'Oblivion Script Extender (OBSE)',
