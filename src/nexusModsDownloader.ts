@@ -4,16 +4,17 @@ import { IGameSupport } from './types';
 import { getGameStore, ignoreNotifications } from './util';
 
 
-async function promptInstall(api: types.IExtensionApi, gameSupport: IGameSupport, gameId: string, version: string, store: string) {
-    const storeName = (id: string) => {
-        switch(id) {
-            case 'gog': return 'GOG';
-            case 'epic': return 'Epic Games';
-            case 'xbox': return 'Xbox Game Pass';
-            case 'steam': return 'Steam';
-            default: return 'Unknown Game Store';
-        }
+const storeName = (id: string) => {
+    switch(id) {
+        case 'gog': return 'GOG';
+        case 'epic': return 'Epic Games';
+        case 'xbox': return 'Xbox Game Pass';
+        case 'steam': return 'Steam';
+        default: return 'Unknown Game Store';
     }
+}
+
+async function promptInstall(api: types.IExtensionApi, gameSupport: IGameSupport, gameId: string, version: string, store: string) {
     
     return new Promise<void>(((resolve, reject) => {
         api.sendNotification?.({
@@ -130,14 +131,44 @@ async function startDownload(
         if (modFiles.length > 1) {
             modFiles.sort((a,b) => b.uploaded_timestamp - a.uploaded_timestamp);
         }
-        const modFile = modFiles[0];
+        let modFile = modFiles[0];
         if (!modFile) {
             // Exit here are just open the mod page.
-            throw new util.DataInvalid('Could not determine which file from Nexus Mods is the relevant SKSE build');
+            const fileChoices = allModFiles.files.filter(m => !!m.category_name).sort((a,b) => b.uploaded_timestamp - a.uploaded_timestamp).slice(0, 5);
+            const gameStore = getGameStore(gameId, api);
+            const title = selectors.gameById(api.getState(), gameId)?.name || 'game';
+            const userChoice: types.IDialogResult = await api.showDialog('question', 'Select script extender version', {
+                text: api.translate(
+                    'Vortex could not automatically determine the correct version of {{name}} for your game. \n\n'+
+                    'You have {{title}} version {{version}} installed from {{store}}.\n\n'+
+                    'Please select the file you wish to download below.', { name: gameSupport.name, version: gameVersion, store: storeName(gameStore), title }),
+                choices: fileChoices.map((m, idx) => ({ id: m.file_id.toString(), text: `Version ${m.version} ${m.description ? `- ${m.description}` : ''}`, value: (idx === 0)  })),
+                links: [ { label: 'Can\'t see the right version? Visit the mod page.', action: () => util.opn(modPageURL).catch(() => null) } ]
+            }, [
+                {
+                    label: 'Cancel'
+                },
+                {
+                    label: 'Download'
+                }
+            ]);
+            // User cancelled the process.
+            if (userChoice.action === 'Cancel') throw new util.UserCanceled();
+            // Work out which option was selected
+            const selected: [string, any][] = Object.entries(userChoice.input).filter(i => i[1] === true);
+            // User did not select an option.
+            if (selected.length !== 1) throw new util.DataInvalid('Could not determine which file from Nexus Mods is the relevant SKSE build.');
+            const idToUse = selected[0][0];
+            // Resolve the modfile from the chosen option.
+            const id = parseInt(idToUse);
+            modFile = modFiles.find(m => m.file_id === id);
+            // If somehow we've still failed to find the ID. 
+            if (!modFile) throw new util.DataInvalid('Failed to match file ID to a valid file.');
         }
-        fileId = modFile.file_id;
+        fileId = modFile?.file_id;
     }
     catch(err) {
+        if (err instanceof util.UserCanceled) return;
         log('error', `Could not obtain file ID for ${gameSupport.name}`, err);
         return util.opn(modPageURL).catch(() => null);
     }
