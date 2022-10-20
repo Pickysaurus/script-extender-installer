@@ -123,7 +123,8 @@ async function startDownload(
     await nexus.setKey(APIKEY);
     let fileId: number = -1;
     try {
-        const allModFiles = await nexus.getModFiles(nexusModsModId, nexusModsGameId);
+        const allModFiles = await nexus.getModFiles(nexusModsModId, nexusModsGameId).catch(() => ({ files: [], file_updates: [] }));
+        if (!allModFiles.files.length) throw new util.DataInvalid('Unable to get a list of files from the API');
         // Look for either files that include the game version in the description or the primary file.
         let modFiles = allModFiles.files
             .filter(f => (!!gameVersion && !!f.description && f.description.includes(gameVersion)) || (!f.description && f.is_primary));
@@ -136,7 +137,8 @@ async function startDownload(
             // Exit here are just open the mod page.
             const fileChoices = allModFiles.files.filter(m => !!m.category_name).sort((a,b) => b.uploaded_timestamp - a.uploaded_timestamp).slice(0, 5);
             const gameStore = getGameStore(gameId, api);
-            const title = selectors.gameById(api.getState(), gameId)?.name || 'game';
+            // For some weird reason, New Vegas has a tab character in the middle of it's name, so that needs to be removed. 
+            const title = (selectors.gameById(api.getState(), gameId)?.name || 'game').replace('\t', ' ');
             const userChoice: types.IDialogResult = await api.showDialog('question', 'Select script extender version', {
                 text: api.translate(
                     'Vortex could not automatically determine the correct version of {{name}} for your game. \n\n'+
@@ -169,7 +171,7 @@ async function startDownload(
     }
     catch(err) {
         if (err instanceof util.UserCanceled) return;
-        log('error', `Could not obtain file ID for ${gameSupport.name}`, err);
+        log('error', `Could not obtain script extender file ID for ${gameSupport.name}. Opening mod page as a fallback.`, err);
         return util.opn(modPageURL).catch(() => null);
     }
 
