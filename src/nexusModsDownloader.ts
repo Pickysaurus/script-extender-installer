@@ -39,6 +39,7 @@ async function promptInstall(api: types.IExtensionApi, gameSupport: IGameSupport
                         label: 'Ignore',
                         action: () => {
                           ignoreNotifications(gameSupport);
+                          dismiss()
                           return reject(new util.UserCanceled());
                         },
                       },
