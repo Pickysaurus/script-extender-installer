@@ -20,7 +20,7 @@ async function promptInstall(api: types.IExtensionApi, gameSupport: IGameSupport
         api.sendNotification?.({
             id: `scriptextender-missing-${gameId}`,
             type: 'info',
-            noDismiss: true,
+            noDismiss: false,
             allowSuppress: true,
             title: 'Script Extender not installed',
             message: gameSupport.name,

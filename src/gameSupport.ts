@@ -143,7 +143,11 @@ const supportData: { [gameId: string]: IGameSupport } = {
           ...xseAttributes.oblivion];
       },
       gitHubAPIUrl: 'https://api.github.com/repos/llde/xOBSE',
-      toolId: 'obse'
+      toolId: 'obse',
+      nexusMods: {
+        gameId: 'oblivion',
+        modId: 37952
+      }
     },
 };
 
