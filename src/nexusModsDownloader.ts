@@ -59,9 +59,16 @@ async function promptInstall(api: types.IExtensionApi, gameSupport: IGameSupport
 
 export async function downloadScriptExtender(api: types.IExtensionApi, gameSupport:IGameSupport) {
     const state: types.IState = api.getState();
-    const gameId: string = selectors.activeGameId(state);
+    const gameId: string = gameSupport.gameId;
     const discovery = selectors.discoveryByGame(state, gameId);
-    const version: string = await util.getGame(gameId).getInstalledVersion?.(discovery);
+    const game = await util.getGame(gameId);
+    if (game === undefined) {
+        // this was possible in an earlier version because gameId was determined by fetching the id
+        // of the active game and in rare cases that might be undefined by this point.
+        // Since that is fixed, game should never be undefined
+        return;
+    }
+    const version: string = game.getInstalledVersion?.(discovery);
     // Break off the final part of the version as we don't need it.
     const versionBasic = version ? version.split('.').slice(0,3).join('.') : undefined;
     const gameStore = getGameStore(gameId, api);
