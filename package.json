@@ -6,7 +6,7 @@
   "repository": "",
   "scripts": {
     "webpack": "node ./node_modules/webpack/bin/webpack --config webpack.config.js --display-error-details --progress --profile --color",
-    "bundle7z": "7z a -t7z sample-extension.7z .\\dist\\index.js .\\dist\\info.json",
+    "bundle7z": "7z a -t7z script-extender-installer.7z .\\dist\\index.js .\\dist\\info.json",
     "build": "npm run webpack && extractInfo"
   },
   "author": "Pickysaurus",
