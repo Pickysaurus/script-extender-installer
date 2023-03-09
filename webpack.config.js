@@ -1,4 +1,4 @@
-let webpack = require('vortex-api/bin/webpack').default;
+const webpack = require('vortex-api/bin/webpack').default;
 
-module.exports = webpack('script-extender-installer', __dirname, 4);
+module.exports = webpack('script-extender-installer', __dirname, 5);
 
