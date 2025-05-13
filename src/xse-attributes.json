@@ -49,7 +49,7 @@
         }
   ],
   "oblivion" : [
-              {
+        {
             "type" : "attribute",
             "key" : "allowRating",
             "value" : false
@@ -103,6 +103,18 @@
             "type" : "attribute",
             "key" : "modId",
             "value" : "obse"
+        }
+  ],
+  "oblivionRemastered" : [
+        {
+            "type" : "attribute",
+            "key" : "logicalFileName",
+            "value" : "Oblivion Remastered Script Extender (OBSE64)"
+        },
+        {
+            "type" : "attribute",
+            "key" : "scriptExtender",
+            "value" : true
         }
   ]
 }

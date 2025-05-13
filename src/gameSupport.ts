@@ -149,6 +149,25 @@ const supportData: { [gameId: string]: IGameSupport } = {
         modId: 37952
       }
     },
+    oblivionRemastered: {
+      name: 'Oblivion Remastered Script Extender (OBSE64)',
+      gameName: 'Oblivion Remastered',
+      gameId: 'oblivion',
+      scriptExtExe: 'obse_loader.exe',
+      website: 'https://www.nexusmods.com/oblivionremastered/mods/282',
+      regex: /^(xOBSE-?[0-9]+\.[0-9]+.*\.(zip|7z))$/i,
+      attributes: (xseVersion) => {
+        return [
+          { type: 'attribute', key: 'version', value: xseVersion } as any,
+          ...xseAttributes.oblivionRemastered];
+      },
+      gitHubAPIUrl: 'https://api.github.com/repos/ianpatt/obse64',
+      toolId: 'obse64',
+      nexusMods: {
+        gameId: 'oblivionremastered',
+        modId: 282
+      }
+    }
 };
 
 export default supportData;
